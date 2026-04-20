@@ -1,0 +1,72 @@
+package com.project.service;
+
+import com.project.model.Notification;
+import com.project.repository.NotificationRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class NotificationService {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    public List<Notification> getUserNotifications(String userId) {
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    public List<Notification> getUnreadUserNotifications(String userId) {
+        return notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+    }
+
+    public Notification createNotification(Notification notification) {
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setRead(false);
+        Notification savedNotification = notificationRepository.save(notification);
+
+        // Broadcast to WebSocket topic
+        messagingTemplate.convertAndSendToUser(
+                savedNotification.getUserId(),
+                "/queue/notifications",
+                savedNotification
+        );
+
+        return savedNotification;
+    }
+
+    public Optional<Notification> markAsRead(String id, String userId) {
+        Optional<Notification> optionalNotification = notificationRepository.findById(id);
+        
+        if (optionalNotification.isPresent()) {
+            Notification notification = optionalNotification.get();
+            // Verify notification belongs to the user
+            if (notification.getUserId().equals(userId)) {
+                notification.setRead(true);
+                return Optional.of(notificationRepository.save(notification));
+            }
+        }
+        
+        return Optional.empty();
+    }
+
+    public boolean deleteNotification(String id, String userId) {
+        Optional<Notification> optionalNotification = notificationRepository.findById(id);
+        
+        if (optionalNotification.isPresent()) {
+            Notification notification = optionalNotification.get();
+            if (notification.getUserId().equals(userId)) {
+                notificationRepository.delete(notification);
+                return true;
+            }
+        }
+        return false;
+    }
+}
