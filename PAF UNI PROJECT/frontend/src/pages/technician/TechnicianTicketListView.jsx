@@ -1,47 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, Filter } from 'lucide-react';
-import TicketTable from '../../components/technician/TicketTable';
-import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTickets, useUpdateTicketStatus } from '../../hooks/useTickets';
+import TicketTable from '../../components/technician/TicketTable';
 
-const TechnicianTicketListView = ({ title, subtitle, filter, hideActions = false }) => {
+const TechnicianTicketListView = ({ title, subtitle, pageType = 'active' }) => {
   const { user } = useAuth();
-  const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get(`/tickets/technician/${user.id}`).catch(() => ({ data: [] }));
-        
-        let data = res.data;
-        if (!data || data.length === 0) {
-           data = [
-             { id: '101', title: 'Network Outage in Lab 3', priority: 'HIGH', building: 'Building C', lab: 'Lab 3', status: 'IN_PROGRESS', createdAt: new Date() },
-             { id: '102', title: 'Smart Board Calibration', priority: 'MEDIUM', building: 'Building A', room: '302', status: 'OPEN', createdAt: new Date(Date.now() - 3600000) },
-             { id: '103', title: 'System Patching', priority: 'LOW', building: 'IT Center', room: 'Server Room', status: 'RESOLVED', createdAt: new Date(Date.now() - 86400000) },
-             { id: '104', title: 'Audio System Failure', priority: 'HIGH', building: 'Auditorium', status: 'OPEN', createdAt: new Date(Date.now() - 7200000) },
-             { id: '105', title: 'Security Camera Update', priority: 'MEDIUM', building: 'North Gate', status: 'CLOSED', createdAt: new Date(Date.now() - 259200000) },
-           ];
-        }
+  const { data: tickets = [], isLoading, refetch } = useTickets(pageType);
+  const updateStatus = useUpdateTicketStatus();
 
-        if (filter) {
-          data = data.filter(filter);
-        }
-        
-        setTickets(data);
-        setLoading(false);
-      } catch (err) {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [user.id, filter]);
+  const handleUpdateStatus = (id, status) => {
+    updateStatus.mutate({ id, status });
+  };
 
   const filteredTickets = tickets.filter(t => 
-    t.title?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (t.subject || t.title)?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     t.id?.toString().includes(searchTerm) ||
     t.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -65,20 +40,23 @@ const TechnicianTicketListView = ({ title, subtitle, filter, hideActions = false
                 className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs outline-none focus:ring-1 focus:ring-[#F5AB24] transition-all w-64"
               />
            </div>
-           <button className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-400 hover:text-[#F5AB24] transition-colors">
+           <button 
+             onClick={() => refetch()}
+             className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-400 hover:text-[#F5AB24] transition-colors"
+           >
               <Filter className="w-5 h-5" />
            </button>
         </div>
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        {loading ? (
+        {isLoading ? (
           <div className="p-20 text-center font-black text-slate-300 uppercase tracking-widest animate-pulse">Syncing Operation Logs...</div>
         ) : (
           <TicketTable 
             tickets={filteredTickets} 
-            onUpdateStatus={() => {}} 
-            hideActions={hideActions}
+            onUpdateStatus={handleUpdateStatus} 
+            pageType={pageType}
           />
         )}
       </div>

@@ -3,17 +3,26 @@ import { Bell, Search, User, Sun, Moon, ShieldCheck, Menu, X, Info, AlertTriangl
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import clsx from 'clsx';
+import { useNotifications } from '../../hooks/useNotifications';
+import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 
 const Navbar = ({ toggleSidebar, sidebarOpen }) => {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const notifications = [
-    { id: 1, title: 'New Ticket Assigned', message: 'Network Outage in Lab 3 requires immediate attention.', type: 'urgent', time: '2 mins ago' },
-    { id: 2, title: 'System Maintenance', message: 'Main server patching scheduled for midnight.', type: 'info', time: '1 hour ago' },
-    { id: 3, title: 'Task Resolved', message: 'Smart Board Calibration in Room 302 confirmed.', type: 'success', time: '3 hours ago' },
-  ];
+  const { data: notifications = [], markAsRead, markAllAsRead } = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleNotificationClick = (n) => {
+    markAsRead.mutate(n.id);
+    if (n.ticketId) {
+      navigate(`/tickets/${n.ticketId}`);
+    }
+    setShowNotifications(false);
+  };
 
   return (
     <header className="h-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40 transition-colors duration-300">
@@ -61,7 +70,11 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
             )}
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-[#F5AB24] border-2 border-white dark:border-slate-900 rounded-full shadow-sm"></span>
+            {unreadCount > 0 && (
+              <span className="absolute top-2 right-2 w-4 h-4 bg-[#F5AB24] border-2 border-white dark:border-slate-900 rounded-full shadow-sm flex items-center justify-center text-[8px] font-black text-[#142B5D]">
+                {unreadCount}
+              </span>
+            )}
           </button>
 
           {/* NOTIFICATION DROPDOWN */}
@@ -69,29 +82,51 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
             <div className="absolute top-full right-0 mt-4 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white">Institutional Alerts</h4>
-                  <span className="px-2 py-0.5 bg-[#F5AB24] text-[#142B5D] text-[8px] font-black rounded uppercase">3 New</span>
+                  {unreadCount > 0 && (
+                    <span className="px-2 py-0.5 bg-[#F5AB24] text-[#142B5D] text-[8px] font-black rounded uppercase">
+                      {unreadCount} New
+                    </span>
+                  )}
                </div>
                <div className="max-h-[400px] overflow-y-auto">
-                  {notifications.map((n) => (
-                    <div key={n.id} className="p-4 border-b last:border-0 border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
-                       <div className="flex items-start space-x-3">
-                          <div className={clsx(
-                            "p-2 rounded-lg mt-1",
-                            n.type === 'urgent' ? "bg-rose-50 dark:bg-rose-900/20 text-rose-500" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
-                          )}>
-                             {n.type === 'urgent' ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
-                          </div>
-                          <div>
-                             <p className="text-[10px] font-black text-[#142B5D] dark:text-slate-200 group-hover:text-[#F5AB24] transition-colors uppercase tracking-tight">{n.title}</p>
-                             <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-tight">{n.message}</p>
-                             <p className="text-[8px] font-bold text-slate-400 mt-2 uppercase">{n.time}</p>
-                          </div>
-                       </div>
-                    </div>
-                  ))}
+                  {notifications.length === 0 ? (
+                    <div className="p-10 text-center text-slate-400 font-bold uppercase text-[10px]">No notifications</div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div 
+                        key={n.id} 
+                        onClick={() => handleNotificationClick(n)}
+                        className={clsx(
+                          "p-4 border-b last:border-0 border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer group",
+                          !n.read && "bg-blue-50/30 dark:bg-blue-900/10"
+                        )}
+                      >
+                         <div className="flex items-start space-x-3">
+                            <div className={clsx(
+                              "p-2 rounded-lg mt-1",
+                              n.type === 'urgent' ? "bg-rose-50 dark:bg-rose-900/20 text-rose-500" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                            )}>
+                               {n.type === 'urgent' ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
+                            </div>
+                            <div>
+                               <p className="text-[10px] font-black text-[#142B5D] dark:text-slate-200 group-hover:text-[#F5AB24] transition-colors uppercase tracking-tight">{n.title}</p>
+                               <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-tight">{n.message}</p>
+                               <p className="text-[8px] font-bold text-slate-400 mt-2 uppercase">
+                                 {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                               </p>
+                            </div>
+                         </div>
+                      </div>
+                    ))
+                  )}
                </div>
                <div className="p-3 text-center bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800">
-                  <button className="text-[8px] font-black uppercase tracking-widest text-[#142B5D] dark:text-[#F5AB24] hover:underline">Clear Internal Log</button>
+                  <button 
+                    onClick={() => markAllAsRead.mutate()}
+                    className="text-[8px] font-black uppercase tracking-widest text-[#142B5D] dark:text-[#F5AB24] hover:underline"
+                  >
+                    Clear Internal Log
+                  </button>
                </div>
             </div>
           )}

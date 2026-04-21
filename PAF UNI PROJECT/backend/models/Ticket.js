@@ -14,6 +14,11 @@ const ticketSchema = new mongoose.Schema({
   status: { type: String, enum: ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'], default: 'OPEN' },
   technicianId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   images: [{ type: String }],
+  ticketNotes: [{
+    body: { type: String, required: true },
+    authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    createdAt: { type: Date, default: Date.now }
+  }],
   building: { type: String },
   lab: { type: String },
   room: { type: String },
@@ -29,7 +34,7 @@ const ticketSchema = new mongoose.Schema({
   timestamps: true,
   toJSON: {
     virtuals: true,
-    transform: function(ret) {
+    transform: function(doc, ret) {
       ret.id = ret._id;
       delete ret.__v;
       return ret;

@@ -9,6 +9,7 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
   const { theme, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  
 
   useEffect(() => {
     if (user) {

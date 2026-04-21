@@ -18,77 +18,56 @@ import UpdateTimeline from '../../components/technician/UpdateTimeline';
 import AttachmentUploader from '../../components/technician/AttachmentUploader';
 import api from '../../services/api';
 
+import { useAuth } from '../../context/AuthContext';
+import { useTicket, useComments, useUpdateTicketStatus, useCommentMutations } from '../../hooks/useTickets';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+
 const TicketDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [ticket, setTicket] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  
+  // Real data fetching
+  const { data: ticket, isLoading: isTicketLoading } = useTicket(id);
+  const { data: comments = [], isLoading: isCommentsLoading } = useComments(id);
+  const updateStatus = useUpdateTicketStatus();
+  const { addComment, updateComment, deleteComment } = useCommentMutations(id);
+
   const [replyText, setReplyText] = useState('');
-
-  const DUMMY_TICKET = {
-    id,
-    title: 'Network Outage in Lab 3',
-    description: 'Multiple students reporting unable to connect to the internal server. WiFi seems stable but Ethernet is down for all terminals.',
-    category: 'Network / Infrastructure',
-    location: 'Building C - Lab 3',
-    priority: 'HIGH',
-    status: 'IN_PROGRESS',
-    createdAt: new Date(Date.now() - 86400000),
-    assignedTechnician: 'John Doe (You)',
-    updates: [
-      { type: 'STATUS_CHANGE', note: 'Technician assigned to the incident.', user: 'System', timestamp: new Date(Date.now() - 86400000) },
-      { type: 'COMMENT', note: 'On-site investigation started. Checking rack switches.', user: 'John Doe', timestamp: new Date(Date.now() - 3600000) },
-      { type: 'STATUS_CHANGE', note: 'Status updated to IN PROGRESS.', user: 'John Doe', timestamp: new Date(Date.now() - 3600000) },
-    ]
-  };
-
-  useEffect(() => {
-    const fetchTicket = async () => {
-      try {
-        setLoading(true);
-        const res = await api.get(`/tickets/${id}`).catch(() => ({ data: DUMMY_TICKET }));
-        setTicket(res.data || DUMMY_TICKET);
-        setLoading(false);
-      } catch (err) {
-        setTicket(DUMMY_TICKET);
-        setLoading(false);
-      }
-    };
-    fetchTicket();
-  }, [id]);
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editText, setEditText] = useState('');
 
   const handleUpdateStatus = (newStatus) => {
-    const update = {
-      type: 'STATUS_CHANGE',
-      note: `Status updated to ${newStatus.replace('_', ' ')}.`,
-      user: 'Technician',
-      timestamp: new Date()
-    };
-    setTicket(prev => ({ 
-      ...prev, 
-      status: newStatus,
-      updates: [update, ...prev.updates]
-    }));
+    updateStatus.mutate({ id, status: newStatus });
   };
 
   const handleSendReply = () => {
     if (!replyText.trim()) return;
-    
-    const newUpdate = {
-      type: 'COMMENT',
-      note: replyText,
-      user: 'Technician',
-      timestamp: new Date()
-    };
-
-    setTicket(prev => ({
-      ...prev,
-      updates: [newUpdate, ...prev.updates]
-    }));
-    setReplyText('');
+    addComment.mutate(replyText, {
+      onSuccess: () => setReplyText('')
+    });
   };
 
-  if (loading || !ticket) return (
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditText(comment.body);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editText.trim()) return;
+    updateComment.mutate({ commentId: editingCommentId, body: editText }, {
+      onSuccess: () => setEditingCommentId(null)
+    });
+  };
+
+  const handleDeleteComment = (commentId) => {
+    if (window.confirm('Delete this comment permanently?')) {
+      deleteComment.mutate(commentId);
+    }
+  };
+
+  if (isTicketLoading || !ticket) return (
     <div className="flex items-center justify-center h-64">
       <div className="w-10 h-10 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
     </div>
@@ -98,7 +77,7 @@ const TicketDetails = () => {
   const currentStepIndex = steps.indexOf(ticket.status);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-[1600px] mx-auto">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20 max-w-[1600px] mx-auto px-4">
       <button 
         onClick={() => navigate(-1)}
         className="flex items-center space-x-2 text-slate-400 hover:text-[#142B5D] dark:hover:text-white transition-colors font-black uppercase text-[10px] tracking-[0.2em]"
@@ -110,24 +89,52 @@ const TicketDetails = () => {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* LEFT: Ticket Info */}
         <div className="lg:w-[350px] space-y-6">
-          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:shadow-md">
              <div className="mb-6">
                 <span className="text-[10px] font-black text-[#F5AB24] uppercase tracking-[0.2em] block mb-2">Detailed Log</span>
                 <h2 className="text-2xl font-black text-[#142B5D] dark:text-white tracking-tighter leading-tight">
-                  {ticket.title}
+                  {ticket.subject || ticket.title}
                 </h2>
+                <p className="text-[10px] text-slate-400 mt-2 font-bold uppercase tracking-widest">
+                  ID: {ticket.id.toUpperCase()}
+                </p>
              </div>
 
              <div className="space-y-6">
                 <InfoItem icon={Tag} label="Category" value={ticket.category} />
-                <InfoItem icon={MapPin} label="Location" value={ticket.location} />
-                <InfoItem icon={Calendar} label="Created Date" value={new Date(ticket.createdAt).toLocaleDateString()} />
+                <InfoItem icon={MapPin} label="Location" value={ticket.room || ticket.location} />
+                <InfoItem icon={Calendar} label="Created Date" value={format(new Date(ticket.createdAt), 'PPP')} />
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Priority Level</p>
                   <StatusBadge status={ticket.priority} />
                 </div>
-                <InfoItem icon={UserCircle} label="Assigned Tech" value={ticket.assignedTechnician} />
+                <InfoItem icon={UserCircle} label="Submitted By" value={`${ticket.userId?.name} (${ticket.userId?.email})`} />
+                {ticket.technicianId && <InfoItem icon={Shield} label="Assigned Tech" value={ticket.technicianId.name} />}
              </div>
+          </div>
+
+          {/* PHOTO GALLERY */}
+          <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+             <div className="flex items-center space-x-2 mb-4">
+                <Info className="w-4 h-4 text-[#F5AB24]" />
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Photos</h4>
+             </div>
+             {ticket.images && ticket.images.length > 0 ? (
+               <div className="grid grid-cols-1 gap-4">
+                 {ticket.images.slice(0, 3).map((img, idx) => (
+                   <div key={idx} className="relative group rounded-xl overflow-hidden aspect-video border border-slate-200 dark:border-slate-700">
+                     <img 
+                       src={img} 
+                       alt={`Ticket Photo ${idx + 1}`} 
+                       className="w-full h-full object-cover transition-transform group-hover:scale-105 cursor-pointer"
+                       onClick={() => window.open(img, '_blank')}
+                     />
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <p className="text-xs font-bold text-slate-400 italic">No photos provided with this ticket.</p>
+             )}
           </div>
 
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
@@ -141,8 +148,9 @@ const TicketDetails = () => {
           </div>
         </div>
 
-        {/* MIDDLE: Workflow + Timeline + Reply */}
+        {/* MIDDLE: Workflow + Comments */}
         <div className="flex-1 space-y-8">
+           {/* PROGRESS STEPS */}
            <div className="bg-white dark:bg-slate-900 p-10 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
               <h3 className="text-xs font-black text-[#142B5D] dark:text-white uppercase tracking-[0.2em] mb-10 text-center">Operation Workflow Progress</h3>
               <div className="relative flex justify-between items-center max-w-2xl mx-auto px-4">
@@ -170,7 +178,7 @@ const TicketDetails = () => {
               </div>
            </div>
 
-           {/* TECHNICAL RESPONSE HUB */}
+           {/* TECHNICAL RESPONSE HUB (FORM) */}
            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-[#F5AB24]/30 shadow-xl shadow-[#F5AB24]/5">
               <div className="flex items-center justify-between mb-6">
                  <div className="flex items-center space-x-3">
@@ -187,42 +195,136 @@ const TicketDetails = () => {
                    value={replyText}
                    onChange={(e) => setReplyText(e.target.value)}
                    placeholder="Type your professional response or technical update here..."
-                   className="w-full h-32 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-sm font-medium outline-none focus:ring-2 focus:ring-[#F5AB24] transition-all resize-none"
+                   className="w-full h-32 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-sm font-medium outline-none focus:ring-2 focus:ring-[#F5AB24] transition-all resize-none shadow-inner"
                  />
                  <div className="flex justify-end">
                     <button 
                       onClick={handleSendReply}
-                      className="flex items-center space-x-2 px-8 py-3.5 bg-[#F5AB24] text-[#142B5D] text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#ffb633] transition shadow-lg active:scale-95"
+                      disabled={!replyText.trim() || addComment.isPending}
+                      className="flex items-center space-x-2 px-8 py-3.5 bg-[#F5AB24] text-[#142B5D] text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#ffb633] transition shadow-lg active:scale-95 disabled:opacity-50"
                     >
-                       <Send className="w-4 h-4" />
+                       {addComment.isPending ? <div className="w-4 h-4 border-2 border-[#142B5D] border-t-transparent rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
                        <span>Send Professional Reply</span>
                     </button>
                  </div>
               </div>
            </div>
 
-           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex items-center space-x-2 mb-8">
+           {/* COMMENT THREAD */}
+           <div className="space-y-6">
+             <div className="flex items-center space-x-2 mb-2">
                 <Activity className="w-4 h-4 text-[#F5AB24]" />
-                <h3 className="text-xs font-black text-[#142B5D] dark:text-white uppercase tracking-widest">Activity & Update Timeline</h3>
-              </div>
-              <UpdateTimeline updates={ticket.updates || []} />
+                <h3 className="text-xs font-black text-[#142B5D] dark:text-white uppercase tracking-widest">Conversation Thread</h3>
+             </div>
+             
+             {isCommentsLoading ? (
+               <div className="p-10 text-center text-slate-300 font-black uppercase text-xs tracking-widest animate-pulse">Syncing thread...</div>
+             ) : comments.length === 0 ? (
+               <div className="p-10 text-center bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 font-bold text-xs uppercase">No comments yet.</div>
+             ) : (
+               <div className="space-y-6">
+                 {comments.map((comment) => (
+                   <div key={comment.id} className={`flex ${comment.authorRole === 'TECHNICIAN' ? 'justify-end' : 'justify-start'}`}>
+                     <div className={`max-w-[80%] rounded-2xl p-5 shadow-sm border ${
+                       comment.authorRole === 'TECHNICIAN' 
+                         ? 'bg-slate-100 dark:bg-slate-800 border-slate-100 dark:border-slate-700' 
+                         : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800'
+                     }`}>
+                       <div className="flex items-center justify-between mb-3">
+                         <div className="flex items-center space-x-2">
+                           <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                             <UserCircle className="w-3 h-3 text-slate-500" />
+                           </div>
+                           <span className="text-[10px] font-black uppercase text-[#142B5D] dark:text-white">{comment.authorId?.name || 'User'}</span>
+                           <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black uppercase ${
+                             comment.authorRole === 'TECHNICIAN' ? 'bg-[#F5AB24] text-[#142B5D]' : 'bg-blue-500 text-white'
+                           }`}>
+                             {comment.authorRole}
+                           </span>
+                         </div>
+                         <span className="text-[8px] font-bold text-slate-400 uppercase">{format(new Date(comment.createdAt), 'MMM dd, HH:mm')}</span>
+                       </div>
+
+                       {editingCommentId === comment.id ? (
+                         <div className="space-y-3">
+                           <textarea 
+                             value={editText}
+                             onChange={(e) => setEditText(e.target.value)}
+                             className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-xs outline-none focus:ring-1 focus:ring-[#F5AB24]"
+                           />
+                           <div className="flex justify-end space-x-2">
+                             <button onClick={() => setEditingCommentId(null)} className="text-[10px] font-black uppercase text-slate-400">Cancel</button>
+                             <button onClick={handleSaveEdit} className="text-[10px] font-black uppercase text-[#F5AB24]">Save</button>
+                           </div>
+                         </div>
+                       ) : (
+                         <>
+                           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                             {comment.body}
+                           </p>
+                           {comment.isEdited && <span className="text-[8px] text-slate-400 mt-1 italic block">Edited</span>}
+                           
+                           {comment.authorId?.id === user?.id && (
+                             <div className="flex justify-end space-x-3 mt-3 pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
+                               <button 
+                                 onClick={() => handleEditComment(comment)}
+                                 className="text-[9px] font-black uppercase text-slate-400 hover:text-[#142B5D] dark:hover:text-white transition-colors"
+                               >
+                                 Edit
+                               </button>
+                               <button 
+                                 onClick={() => handleDeleteComment(comment.id)}
+                                 className="text-[9px] font-black uppercase text-slate-400 hover:text-red-500 transition-colors"
+                               >
+                                 Delete
+                               </button>
+                             </div>
+                           )}
+                         </>
+                       )}
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             )}
            </div>
+
+           {/* INTERNAL NOTES SECTION (UI Visual only as it's separate from Hub) */}
+           {ticket.ticketNotes && ticket.ticketNotes.length > 0 && (
+              <div className="bg-slate-50 dark:bg-slate-800/10 p-8 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+                 <div className="flex items-center space-x-2 mb-6">
+                   <Shield className="w-4 h-4 text-[#F5AB24]" />
+                   <h3 className="text-xs font-black text-[#142B5D] dark:text-white uppercase tracking-widest">Internal Technician Notes</h3>
+                 </div>
+                 <div className="space-y-4">
+                    {ticket.ticketNotes.map((note, idx) => (
+                      <div key={idx} className="p-4 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                         <div className="flex justify-between items-center mb-2">
+                            <span className="text-[9px] font-black text-[#F5AB24] uppercase">Internal Note</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase">{format(new Date(note.createdAt), 'yyyy-MM-dd')}</span>
+                         </div>
+                         <p className="text-xs text-slate-600 dark:text-slate-400 font-medium italic">"{note.body}"</p>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+           )}
         </div>
 
         {/* RIGHT: Actions Panel */}
         <div className="lg:w-[300px] space-y-8">
-           <div className="bg-[#142B5D] p-8 rounded-2xl shadow-xl shadow-[#142B5D]/20 text-white">
+           <div className="bg-[#142B5D] p-8 rounded-2xl shadow-xl shadow-[#142B5D]/20 text-white sticky top-8">
               <div className="flex items-center space-x-2 mb-6 opacity-60">
                 <Shield className="w-4 h-4" />
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">Actions Hub</h3>
               </div>
               <div className="space-y-4">
-                {(ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS') && (
+                {(ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS' || ticket.status === 'Assigned') && (
                   <ActionButton 
-                    label={ticket.status === 'OPEN' ? "Initiate Work" : "Resolve Incident"} 
-                    variant={ticket.status === 'OPEN' ? "amber" : "success"} 
-                    onClick={() => handleUpdateStatus(ticket.status === 'OPEN' ? 'IN_PROGRESS' : 'RESOLVED')} 
+                    label={ticket.status === 'OPEN' || ticket.status === 'Assigned' ? "Initiate Work" : "Resolve Incident"} 
+                    variant={ticket.status === 'OPEN' || ticket.status === 'Assigned' ? "amber" : "success"} 
+                    onClick={() => handleUpdateStatus(ticket.status === 'OPEN' || ticket.status === 'Assigned' ? 'IN_PROGRESS' : 'RESOLVED')} 
+                    disabled={updateStatus.isPending}
                   />
                 )}
                 {ticket.status === 'RESOLVED' && (
@@ -230,15 +332,18 @@ const TicketDetails = () => {
                     label="Close Operation" 
                     variant="primary" 
                     onClick={() => handleUpdateStatus('CLOSED')} 
+                    disabled={updateStatus.isPending}
                   />
                 )}
-                <ActionButton label="Flag for Review" variant="secondary" />
                 <ActionButton label="Transfer Zone" variant="secondary" />
+                <button 
+                  onClick={() => window.print()}
+                  className="w-full flex items-center justify-center space-x-2 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all mt-6"
+                >
+                   <Calendar className="w-3.5 h-3.5" />
+                   <span>Export Operational Log</span>
+                </button>
               </div>
-           </div>
-
-           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <AttachmentUploader />
            </div>
         </div>
       </div>

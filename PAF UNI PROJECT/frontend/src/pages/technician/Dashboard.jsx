@@ -7,36 +7,31 @@ import { useAuth } from '../../context/AuthContext';
 import clsx from 'clsx';
 import { toast } from 'sonner';
 
+import { useTickets, useUpdateTicketStatus, useAddTicketNote } from '../../hooks/useTickets';
+
 const Dashboard = () => {
   const { user } = useAuth();
-  const [tickets, setTickets] = useState([]);
+  
+  // Use TanStack Query hooks
+  const { data: tickets = [], isLoading: isTicketsLoading } = useTickets('active-assignments');
+  const updateStatus = useUpdateTicketStatus();
+  const addNote = useAddTicketNote();
+  
   const [stats, setStats] = useState({
     assigned: 0,
     inProgress: 0,
     resolved: 0,
     highPriority: 0
   });
-  const [loading, setLoading] = useState(true);
   
   // Modal States
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [noteText, setNoteText] = useState('');
-  const [isNoteSaving, setIsNoteSaving] = useState(false);
-  const [isCompleting, setIsCompleting] = useState(false);
 
-  const fetchData = async () => {
+  const fetchStats = async () => {
     try {
-      setLoading(true);
-      const res = await api.get(`/tickets/technician/${user?.id}`).catch(() => ({ data: [] }));
-      
-      let ticketsData = Array.isArray(res.data) ? res.data : [];
-      // Filter out completed assignments for the active table
-      const activeTickets = ticketsData.filter(t => t.status !== 'RESOLVED' && t.status !== 'CLOSED');
-      setTickets(activeTickets);
-
-      // Fetch stats (using existing endpoint)
       const statsRes = await api.get(`/tickets/stats/${user?.id}`).catch(() => ({ data: { assigned: 0, open: 0, inProgress: 0, resolved: 0, highPriority: 0 } }));
       const s = statsRes.data;
       setStats({
@@ -45,28 +40,19 @@ const Dashboard = () => {
         resolved: s.resolved || 0,
         highPriority: s.highPriority || 0
       });
-
-      setLoading(false);
     } catch (err) {
-      console.error('Failed to fetch dashboard data:', err);
-      setLoading(false);
+      console.error('Failed to fetch stats:', err);
     }
   };
 
   useEffect(() => {
     if (user?.id) {
-       fetchData();
+       fetchStats();
     }
-  }, [user?.id]);
+  }, [user?.id, tickets]); // Refresh stats when tickets change
 
-  const handleUpdateStatus = async (id, status) => {
-    try {
-      await api.patch(`/tickets/${id}`, { status });
-      toast.success(`Status updated to ${status}`);
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update status');
-    }
+  const handleUpdateStatus = (id, status) => {
+    updateStatus.mutate({ id, status });
   };
 
   const handleCompleteRequest = (ticket) => {
@@ -74,20 +60,17 @@ const Dashboard = () => {
     setIsCompleteModalOpen(true);
   };
 
-  const handleConfirmComplete = async () => {
+  const handleConfirmComplete = () => {
     if (!selectedTicket) return;
-    setIsCompleting(true);
-    try {
-      await api.patch(`/api/assignments/${selectedTicket.id}/complete`);
-      toast.success("Assignment marked as complete");
-      setIsCompleteModalOpen(false);
-      setSelectedTicket(null);
-      fetchData(); // This will refresh and remove the row
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to complete assignment');
-    } finally {
-      setIsCompleting(false);
-    }
+    updateStatus.mutate({ 
+      id: selectedTicket.id, 
+      status: 'RESOLVED' 
+    }, {
+      onSuccess: () => {
+        setIsCompleteModalOpen(false);
+        setSelectedTicket(null);
+      }
+    });
   };
 
   const handleAddNoteRequest = (ticket) => {
@@ -96,20 +79,18 @@ const Dashboard = () => {
     setIsNoteModalOpen(true);
   };
 
-  const handleSaveNote = async () => {
+  const handleSaveNote = () => {
     if (!selectedTicket || !noteText.trim()) return;
-    setIsNoteSaving(true);
-    try {
-      await api.post(`/api/assignments/${selectedTicket.id}/notes`, { note: noteText });
-      toast.success("Note added successfully");
-      setIsNoteModalOpen(false);
-      setSelectedTicket(null);
-      setNoteText('');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add note');
-    } finally {
-      setIsNoteSaving(false);
-    }
+    addNote.mutate({ 
+      id: selectedTicket.id, 
+      note: noteText 
+    }, {
+      onSuccess: () => {
+        setIsNoteModalOpen(false);
+        setSelectedTicket(null);
+        setNoteText('');
+      }
+    });
   };
 
   const handleDownloadReport = () => {
@@ -120,9 +101,9 @@ const Dashboard = () => {
       headers.join(","),
       ...tickets.map(t => [
         t.id,
-        `"${t.title}"`,
+        `"${t.subject || t.title}"`,
         t.priority,
-        `"${t.lab || t.room || t.building}"`,
+        `"${t.room || t.location || t.building || ''}"`,
         t.status,
         new Date(t.createdAt).toLocaleString()
       ].join(","))
@@ -139,7 +120,7 @@ const Dashboard = () => {
     document.body.removeChild(a);
   };
 
-  if (loading) return (
+  if (isTicketsLoading) return (
     <div className="flex items-center justify-center h-64">
       <div className="w-10 h-10 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
     </div>
@@ -245,10 +226,10 @@ const Dashboard = () => {
                  </button>
                  <button 
                     onClick={handleConfirmComplete}
-                    disabled={isCompleting}
+                    disabled={updateStatus.isPending}
                     className="flex-1 py-4 bg-emerald-500 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition flex items-center justify-center space-x-2 disabled:opacity-50"
                  >
-                    {isCompleting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
+                    {updateStatus.isPending ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
                     <span>Confirm</span>
                  </button>
               </div>
@@ -285,10 +266,10 @@ const Dashboard = () => {
                  </button>
                  <button 
                     onClick={handleSaveNote}
-                    disabled={isNoteSaving || !noteText.trim()}
+                    disabled={addNote.isPending || !noteText.trim()}
                     className="px-10 py-3 bg-[#F5AB24] text-[#142B5D] text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-[#F5AB24]/20 hover:bg-[#e09b1f] transition flex items-center space-x-2 disabled:opacity-50"
                  >
-                    {isNoteSaving ? <div className="w-4 h-4 border-2 border-[#142B5D] border-t-transparent rounded-full animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                    {addNote.isPending ? <div className="w-4 h-4 border-2 border-[#142B5D] border-t-transparent rounded-full animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                     <span>Save Note</span>
                  </button>
               </div>

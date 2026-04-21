@@ -104,6 +104,89 @@ router.post('/profile-picture', auth, checkRole(['TECHNICIAN']), upload.single('
   }
 });
 
+// @route   GET /api/technician/active-assignments
+// @desc    Get active assignments for logged-in technician
+// @access  Private (Technician)
+router.get('/active-assignments', auth, checkRole(['TECHNICIAN']), async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ 
+      technicianId: req.user.id,
+      status: { $in: ['OPEN', 'IN_PROGRESS'] }
+    })
+    .populate('userId', 'name email')
+    .sort({ createdAt: -1 });
+    res.json(tickets);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /api/technician/in-progress
+// @desc    Get in-progress assignments
+router.get('/in-progress', auth, checkRole(['TECHNICIAN']), async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ 
+      technicianId: req.user.id,
+      status: 'IN_PROGRESS'
+    })
+    .populate('userId', 'name email')
+    .sort({ updatedAt: -1 });
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /api/technician/resolved
+// @desc    Get resolved assignments
+router.get('/resolved', auth, checkRole(['TECHNICIAN']), async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ 
+      technicianId: req.user.id,
+      status: 'RESOLVED'
+    })
+    .populate('userId', 'name email')
+    .sort({ updatedAt: -1 });
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /api/technician/priority
+// @desc    Get high/urgent priority assignments
+router.get('/priority', auth, checkRole(['TECHNICIAN']), async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ 
+      technicianId: req.user.id,
+      priority: { $in: ['HIGH', 'URGENT'] },
+      status: { $ne: 'CLOSED' }
+    })
+    .populate('userId', 'name email')
+    .sort({ priority: -1, createdAt: -1 });
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /api/technician/closed
+// @desc    Get closed assignments
+router.get('/closed', auth, checkRole(['TECHNICIAN']), async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ 
+      technicianId: req.user.id,
+      status: 'CLOSED'
+    })
+    .populate('userId', 'name email')
+    .sort({ updatedAt: -1 });
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route   PATCH /api/assignments/:id/complete
 // @desc    Mark assignment as complete
 // @access  Private (Technician)
@@ -143,10 +226,10 @@ router.post('/assignments/:id/notes', auth, checkRole(['TECHNICIAN']), async (re
         return res.status(403).json({ message: 'Not authorized to add notes to this assignment' });
     }
 
-    ticket.workLog.push({
-        action: 'Note Added',
-        notes: note,
-        timestamp: new Date()
+    ticket.ticketNotes.push({
+        body: note,
+        authorId: req.user.id,
+        createdAt: new Date()
     });
     
     await ticket.save();

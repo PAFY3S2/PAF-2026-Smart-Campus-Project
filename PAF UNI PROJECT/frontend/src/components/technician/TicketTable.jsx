@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Eye, Play, CheckCircle, MoreVertical, FileText, ChevronRight } from 'lucide-react';
+import { Eye, Play, CheckCircle, MoreVertical, FileText, Calendar, MapPin, User, Tag, Clock } from 'lucide-react';
 import clsx from 'clsx';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import QuickViewModal from './QuickViewModal';
+import { format } from 'date-fns';
 
-const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActions = false }) => {
+const TicketTable = ({ tickets = [], onUpdateStatus, onAddNote, onComplete, pageType = 'active' }) => {
   const navigate = useNavigate();
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,54 +34,105 @@ const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActio
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const showActions = pageType !== 'resolved' && pageType !== 'closed';
+
   return (
     <div className="overflow-x-auto min-h-[400px]">
       <table className="w-full text-left border-collapse">
         <thead className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
           <tr>
-            <th className="px-6 py-4">Incident ID</th>
-            <th className="px-6 py-4">Subject</th>
-            <th className="px-6 py-4">Intensity</th>
-            <th className="px-6 py-4">Zone / Location</th>
-            <th className="px-6 py-4">Operational Status</th>
-            {!hideActions && <th className="px-6 py-4 text-right">Actions</th>}
+            <th className="px-6 py-4">ID</th>
+            <th className="px-6 py-4">Title & Description</th>
+            <th className="px-6 py-4">Status & Priority</th>
+            <th className="px-6 py-4">Submitted By</th>
+            <th className="px-6 py-4">Submission Details</th>
+            <th className="px-6 py-4">Location & Category</th>
+            <th className="px-6 py-4">Last Updated</th>
+            {showActions && <th className="px-6 py-4 text-right">Actions</th>}
+            {!showActions && <th className="px-6 py-4 text-right">Progress</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
           {tickets.length === 0 ? (
             <tr>
-              <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-widest animate-pulse">
-                Zero active assignments found
+              <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-widest animate-pulse">
+                Zero tickets found in this category
               </td>
             </tr>
           ) : (
             tickets.map((ticket) => (
               <tr key={ticket.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors group">
                 <td className="px-6 py-5">
-                   <span className="font-black text-[#142B5D] dark:text-[#F5AB24] text-xs"># {ticket.id}</span>
+                   <span className="font-black text-[#142B5D] dark:text-[#F5AB24] text-xs"># {ticket.id.substring(ticket.id.length - 6).toUpperCase()}</span>
+                </td>
+                <td className="px-6 py-5 max-w-xs">
+                  <p className="font-bold text-sm text-[#142B5D] dark:text-slate-200 line-clamp-1">{ticket.subject || ticket.title || 'Untitled Ticket'}</p>
+                  <div className="flex items-center mt-1">
+                    <p className="text-[10px] text-slate-400 truncate flex-1">{ticket.description}</p>
+                    <button 
+                      onClick={() => navigate(`/tickets/${ticket.id}`)}
+                      className="ml-2 text-[10px] font-black text-[#F5AB24] hover:underline uppercase"
+                    >
+                      View
+                    </button>
+                  </div>
                 </td>
                 <td className="px-6 py-5">
-                  <p className="font-bold text-sm text-[#142B5D] dark:text-slate-200 group-hover:text-[#F5AB24] transition-colors">{ticket.title}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{ticket.building || 'Campus Facility'}</p>
+                  <div className="flex flex-col space-y-1.5">
+                    <StatusBadge status={ticket.status} />
+                    <StatusBadge status={ticket.priority} />
+                  </div>
                 </td>
                 <td className="px-6 py-5">
-                  <StatusBadge status={ticket.priority} />
+                   <div className="flex items-center space-x-2">
+                     <div className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[#142B5D] dark:text-[#F5AB24]">
+                        <User className="w-3.5 h-3.5" />
+                     </div>
+                     <div>
+                       <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{ticket.userId?.name || 'Anonymous'}</p>
+                       <p className="text-[10px] text-slate-400">{ticket.userId?.email || 'N/A'}</p>
+                     </div>
+                   </div>
                 </td>
                 <td className="px-6 py-5">
-                   <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tighter">
-                     {ticket.lab || ticket.room || ticket.building}
+                  <div className="flex flex-col space-y-1 text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center space-x-1.5 text-[10px] font-bold">
+                      <Calendar className="w-3 h-3" />
+                      <span>{format(new Date(ticket.createdAt), 'yyyy-MM-dd')}</span>
+                    </div>
+                    <div className="flex items-center space-x-1.5 text-[10px] font-medium">
+                      <Clock className="w-3 h-3" />
+                      <span>{format(new Date(ticket.createdAt), 'HH:mm:ss')}</span>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-5">
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center space-x-1.5">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                        {ticket.room || ticket.location || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-1.5">
+                      <Tag className="w-3 h-3 text-[#F5AB24]" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-slate-400">
+                        {ticket.category}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-5">
+                   <p className="text-[10px] font-bold text-slate-400">
+                     {format(new Date(ticket.updatedAt), 'MMM dd, HH:mm')}
                    </p>
                 </td>
-                <td className="px-6 py-5">
-                   <StatusBadge status={ticket.status} />
-                </td>
-                {!hideActions && (
-                  <td className="px-6 py-5 text-right relative">
-                    <div className="flex items-center justify-end space-x-2 transition-opacity">
+                <td className="px-6 py-5 text-right relative">
+                  {showActions ? (
+                    <div className="flex items-center justify-end space-x-2">
                       <button 
-                        onClick={() => handleQuickView(ticket)}
-                        className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-[#142B5D] hover:text-white transition-all transition-transform active:scale-90"
-                        title="Inspect Parameters"
+                        onClick={() => navigate(`/tickets/${ticket.id}`)}
+                        className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-[#142B5D] hover:text-white transition-all active:scale-90"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -88,7 +140,7 @@ const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActio
                          <button 
                            onClick={(e) => toggleMenu(e, ticket.id)}
                            className={clsx(
-                             "p-2 rounded-lg transition-all transition-transform active:scale-90",
+                             "p-2 rounded-lg transition-all active:scale-90",
                              activeMenuId === ticket.id ? "bg-[#142B5D] text-white" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                            )}
                          >
@@ -101,14 +153,14 @@ const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActio
                              className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200"
                            >
                               <button 
-                                onClick={() => handleQuickView(ticket)}
+                                onClick={() => navigate(`/tickets/${ticket.id}`)}
                                 className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                               >
                                  <Eye className="w-4 h-4 text-blue-500" />
                                  <span>View Details</span>
                               </button>
                               
-                              {(ticket.status === 'Assigned' || ticket.status === 'OPEN') && (
+                              {pageType !== 'resolved' && pageType !== 'closed' && (ticket.status === 'OPEN' || ticket.status === 'Assigned') && (
                                 <button 
                                   onClick={() => { onUpdateStatus(ticket.id, 'IN_PROGRESS'); setActiveMenuId(null); }}
                                   className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
@@ -118,7 +170,7 @@ const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActio
                                 </button>
                               )}
 
-                              {ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && (
+                              {pageType !== 'resolved' && pageType !== 'closed' && (
                                 <button 
                                   onClick={() => { onComplete(ticket); setActiveMenuId(null); }}
                                   className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
@@ -139,8 +191,12 @@ const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActio
                          )}
                       </div>
                     </div>
-                  </td>
-                )}
+                  ) : (
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
+                      {pageType === 'resolved' ? 'Completed' : 'Closed'}
+                    </span>
+                  )}
+                </td>
               </tr>
             ))
           )}

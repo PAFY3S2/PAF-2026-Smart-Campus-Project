@@ -6,8 +6,23 @@ import App from './App.jsx';
 // Import our mock service before rendering
 // import './mocks/browser';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+      <Toaster position="top-right" richColors />
+    </QueryClientProvider>
   </StrictMode>,
 );

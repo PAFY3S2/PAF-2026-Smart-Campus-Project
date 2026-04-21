@@ -4,10 +4,9 @@ import TechnicianTicketListView from './TechnicianTicketListView';
 const Resolved = () => {
   return (
     <TechnicianTicketListView 
-      title="Resolved Archive" 
-      subtitle="Tickets that have been successfully addressed and verified." 
-      filter={(t) => t.status === 'RESOLVED'}
-      hideActions={true}
+      title="Resolution Archive" 
+      subtitle="Completed assignments and archived resolutions." 
+      pageType="resolved"
     />
   );
 };

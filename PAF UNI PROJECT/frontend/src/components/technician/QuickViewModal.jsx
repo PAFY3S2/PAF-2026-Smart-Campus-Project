@@ -45,8 +45,10 @@ const QuickViewModal = ({ ticket, isOpen, onClose }) => {
           <div className="grid grid-cols-2 gap-6">
             <ModalInfoItem icon={Tag} label="Intensity" value={<StatusBadge status={ticket.priority} />} />
             <ModalInfoItem icon={Info} label="Flow Status" value={<StatusBadge status={ticket.status} />} />
-            <ModalInfoItem icon={MapPin} label="Zone" value={ticket.building || 'Campus'} />
+            <ModalInfoItem icon={MapPin} label="Zone" value={ticket.room || ticket.location || 'Campus'} />
             <ModalInfoItem icon={Calendar} label="Logged At" value={new Date(ticket.createdAt).toLocaleDateString()} />
+            <ModalInfoItem icon={User} label="Submitted By" value={ticket.userId?.name || 'Anonymous'} />
+            <ModalInfoItem icon={Tag} label="Category" value={ticket.category || 'General'} />
           </div>
 
           <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
