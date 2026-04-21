@@ -32,11 +32,15 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 
+const technicianRoutes = require('./routes/technicianRoutes');
+
 app.use('/api/auth', authRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/technician', technicianRoutes);
+app.use('/api/assignments', technicianRoutes); // Map assignments to the same router or separate if needed
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

@@ -7,6 +7,7 @@ const Resolved = () => {
       title="Resolved Archive" 
       subtitle="Tickets that have been successfully addressed and verified." 
       filter={(t) => t.status === 'RESOLVED'}
+      hideActions={true}
     />
   );
 };

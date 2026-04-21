@@ -4,7 +4,7 @@ import TicketTable from '../../components/technician/TicketTable';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
-const TechnicianTicketListView = ({ title, subtitle, filter }) => {
+const TechnicianTicketListView = ({ title, subtitle, filter, hideActions = false }) => {
   const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,11 @@ const TechnicianTicketListView = ({ title, subtitle, filter }) => {
         {loading ? (
           <div className="p-20 text-center font-black text-slate-300 uppercase tracking-widest animate-pulse">Syncing Operation Logs...</div>
         ) : (
-          <TicketTable tickets={filteredTickets} onUpdateStatus={() => {}} />
+          <TicketTable 
+            tickets={filteredTickets} 
+            onUpdateStatus={() => {}} 
+            hideActions={hideActions}
+          />
         )}
       </div>
     </div>

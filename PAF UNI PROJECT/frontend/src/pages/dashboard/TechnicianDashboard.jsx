@@ -132,7 +132,7 @@ const TechnicianDashboard = () => {
           </div>
           <div className="p-5">
             {recentlyUpdated.length === 0 ? (
-              <p className="text-sm text-slate-400 italic py-4">No recent Activity.</p>
+              <p className="text-sm text-slate-400 italic py-4">No recent activity.</p>
             ) : (
               <div className="space-y-4">
                 {recentlyUpdated.map(ticket => (

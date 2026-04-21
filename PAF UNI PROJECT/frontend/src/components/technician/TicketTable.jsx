@@ -1,22 +1,40 @@
-import React, { useState } from 'react';
-import { Eye, Play, CheckCircle, MoreVertical } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Eye, Play, CheckCircle, MoreVertical, FileText, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
 import QuickViewModal from './QuickViewModal';
 
-const TicketTable = ({ tickets, onUpdateStatus }) => {
+const TicketTable = ({ tickets, onUpdateStatus, onAddNote, onComplete, hideActions = false }) => {
   const navigate = useNavigate();
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const menuRef = useRef(null);
 
   const handleQuickView = (ticket) => {
     setSelectedTicket(ticket);
     setIsModalOpen(true);
+    setActiveMenuId(null);
   };
 
+  const toggleMenu = (e, id) => {
+    e.stopPropagation();
+    setActiveMenuId(activeMenuId === id ? null : id);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setActiveMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto min-h-[400px]">
       <table className="w-full text-left border-collapse">
         <thead className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
           <tr>
@@ -25,7 +43,7 @@ const TicketTable = ({ tickets, onUpdateStatus }) => {
             <th className="px-6 py-4">Intensity</th>
             <th className="px-6 py-4">Zone / Location</th>
             <th className="px-6 py-4">Operational Status</th>
-            <th className="px-6 py-4 text-right">Actions</th>
+            {!hideActions && <th className="px-6 py-4 text-right">Actions</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -56,43 +74,73 @@ const TicketTable = ({ tickets, onUpdateStatus }) => {
                 <td className="px-6 py-5">
                    <StatusBadge status={ticket.status} />
                 </td>
-                <td className="px-6 py-5 text-right">
-                  <div className="flex items-center justify-end space-x-2 transition-opacity">
-                    <button 
-                      onClick={() => handleQuickView(ticket)}
-                      className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-[#142B5D] hover:text-white transition-all transition-transform active:scale-90"
-                      title="Inspect Parameters"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                    {ticket.status === 'OPEN' && (
+                {!hideActions && (
+                  <td className="px-6 py-5 text-right relative">
+                    <div className="flex items-center justify-end space-x-2 transition-opacity">
                       <button 
-                        onClick={() => onUpdateStatus(ticket.id, 'IN_PROGRESS')}
-                        className="p-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 rounded-lg hover:bg-amber-500 hover:text-white transition-all transform active:scale-90"
-                        title="Initialize Operation"
+                        onClick={() => handleQuickView(ticket)}
+                        className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-[#142B5D] hover:text-white transition-all transition-transform active:scale-90"
+                        title="Inspect Parameters"
                       >
-                        <Play className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                       </button>
-                    )}
-                    {(ticket.status === 'IN_PROGRESS' || ticket.status === 'RESOLVED') && (
-                       <button 
-                         onClick={() => onUpdateStatus(ticket.id, ticket.status === 'IN_PROGRESS' ? 'RESOLVED' : 'CLOSED')}
-                         className={clsx(
-                           "p-2 rounded-lg transition-all transform active:scale-90",
-                           ticket.status === 'IN_PROGRESS' 
-                             ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 hover:bg-emerald-500 hover:text-white"
-                             : "bg-blue-50 dark:bg-blue-900/30 text-blue-600 hover:bg-blue-500 hover:text-white"
+                      <div className="relative">
+                         <button 
+                           onClick={(e) => toggleMenu(e, ticket.id)}
+                           className={clsx(
+                             "p-2 rounded-lg transition-all transition-transform active:scale-90",
+                             activeMenuId === ticket.id ? "bg-[#142B5D] text-white" : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                           )}
+                         >
+                           <MoreVertical className="w-4 h-4" />
+                         </button>
+
+                         {activeMenuId === ticket.id && (
+                           <div 
+                             ref={menuRef}
+                             className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200"
+                           >
+                              <button 
+                                onClick={() => handleQuickView(ticket)}
+                                className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                              >
+                                 <Eye className="w-4 h-4 text-blue-500" />
+                                 <span>View Details</span>
+                              </button>
+                              
+                              {(ticket.status === 'Assigned' || ticket.status === 'OPEN') && (
+                                <button 
+                                  onClick={() => { onUpdateStatus(ticket.id, 'IN_PROGRESS'); setActiveMenuId(null); }}
+                                  className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                   <Play className="w-4 h-4 text-amber-500" />
+                                   <span>Mark as In Progress</span>
+                                </button>
+                              )}
+
+                              {ticket.status !== 'RESOLVED' && ticket.status !== 'CLOSED' && (
+                                <button 
+                                  onClick={() => { onComplete(ticket); setActiveMenuId(null); }}
+                                  className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                   <CheckCircle className="w-4 h-4 text-emerald-500" />
+                                   <span>Mark as Complete</span>
+                                </button>
+                              )}
+
+                              <button 
+                                onClick={() => { onAddNote(ticket); setActiveMenuId(null); }}
+                                className="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                              >
+                                 <FileText className="w-4 h-4 text-[#F5AB24]" />
+                                 <span>Add Note</span>
+                              </button>
+                           </div>
                          )}
-                         title={ticket.status === 'IN_PROGRESS' ? "Confirm Resolution" : "Archive Archive Log"}
-                       >
-                         <CheckCircle className="w-4 h-4" />
-                       </button>
-                    )}
-                    <button className="p-2 text-slate-400 hover:text-[#142B5D] dark:hover:text-[#F5AB24] transition-colors">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
+                      </div>
+                    </div>
+                  </td>
+                )}
               </tr>
             ))
           )}

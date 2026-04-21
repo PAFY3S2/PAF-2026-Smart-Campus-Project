@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
   workLocations: [{ type: String }],
   availability: { type: Boolean, default: true },
   workingHours: { type: String },
+  address: { type: String },
+  specialty: { type: String },
+  experienceYears: { type: Number },
+  bio: { type: String },
 }, { 
   timestamps: true,
   toJSON: {
