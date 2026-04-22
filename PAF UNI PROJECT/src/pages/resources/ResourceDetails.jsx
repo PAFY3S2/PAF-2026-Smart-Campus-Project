@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Monitor, Building, Clock, MapPin, Users, CheckCircle, AlertTriangle, CalendarPlus, Copy, Wrench, XCircle, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Monitor, Building, Clock, MapPin, Users, CheckCircle, AlertTriangle, CalendarPlus, Wrench, XCircle, RefreshCcw } from 'lucide-react';
 import resourceService from '../../services/resourceService';
 import { resolveImage } from '../../utils/imageUtils';
 
@@ -10,8 +10,6 @@ const ResourceDetails = () => {
   const [resource, setResource] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const [copiedId, setCopiedId] = useState(false);
 
   const fetchResource = async () => {
     setIsLoading(true);
@@ -30,12 +28,7 @@ const ResourceDetails = () => {
     fetchResource();
   }, [id]);
 
-  const copyToClipboard = () => {
-    if (!resource) return;
-    navigator.clipboard.writeText(resource.id);
-    setCopiedId(true);
-    setTimeout(() => setCopiedId(false), 2000);
-  };
+
 
   const formatTime = (timeStr) => {
     if (!timeStr) return '';
@@ -140,13 +133,7 @@ const ResourceDetails = () => {
                 <h2 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md">{resource.name}</h2>
                 <div className="flex items-center space-x-3 mt-2 text-slate-200 font-medium text-sm">
                   <span className="uppercase tracking-wider">{resource.type}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                  <div className="flex items-center space-x-1.5 bg-slate-800/40 px-2 py-0.5 rounded-md border border-slate-700/50 backdrop-blur-sm">
-                    <span className="text-slate-100">ID: #{resource.id}</span>
-                    <button onClick={copyToClipboard} className="p-1 hover:bg-slate-700 rounded-md transition text-slate-300 hover:text-white" title="Copy ID">
-                      {copiedId ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
+
                 </div>
               </div>
               <span className={`px-4 py-2 text-sm font-bold rounded-full flex items-center space-x-2 border backdrop-blur-sm ${badgeInfo.overlayClass}`}>
@@ -165,13 +152,7 @@ const ResourceDetails = () => {
                 <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">{resource.name}</h2>
                 <div className="flex items-center space-x-3 mt-2 text-slate-500 dark:text-slate-400 font-medium text-sm">
                   <span className="uppercase tracking-wider">{resource.type}</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></span>
-                  <div className="flex items-center space-x-1.5">
-                    <span className="text-slate-600 dark:text-slate-300">ID: #{resource.id}</span>
-                    <button onClick={copyToClipboard} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" title="Copy ID">
-                      {copiedId ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
+
                 </div>
               </div>
             </div>
@@ -217,7 +198,9 @@ const ResourceDetails = () => {
                 <div>
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">Availability Window</p>
                   <p className="text-lg font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
-                    {formatTime(resource.availabilityStartTime)} &ndash; {formatTime(resource.availabilityEndTime)}
+                    {resource.availabilityStartTime && resource.availabilityEndTime 
+                      ? `${formatTime(resource.availabilityStartTime)} - ${formatTime(resource.availabilityEndTime)}`
+                      : 'Not Available'}
                   </p>
                 </div>
               </div>
