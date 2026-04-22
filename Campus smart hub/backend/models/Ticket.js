@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const commentSchema = new mongoose.Schema({
+  text: { type: String, required: true },
+  author: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now }
+});
+
 const ticketSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -38,6 +44,10 @@ const ticketSchema = new mongoose.Schema({
   adminReply: {
     type: String,
     default: ''
+  },
+  comments: {
+    type: [commentSchema],
+    default: []
   }
 }, { timestamps: true });
 

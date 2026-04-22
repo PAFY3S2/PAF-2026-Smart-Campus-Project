@@ -54,7 +54,43 @@ router.get('/', protect, admin, async (req, res) => {
   }
 });
 
-// @desc    Update ticket status/reply
+// @desc    Update ticket status/reply/comments (Admin or Technician)
+// @route   PUT /api/tickets/:id
+// @access  Private/Admin
+router.put('/:id', protect, admin, async (req, res) => {
+  try {
+    const { status, adminReply, comments, comment } = req.body;
+    const ticket = await Ticket.findById(req.params.id);
+
+    if (!ticket) {
+      return res.status(404).json({ message: 'Ticket not found' });
+    }
+
+    if (status) ticket.status = status;
+    if (adminReply !== undefined) ticket.adminReply = adminReply;
+
+    // Support adding a single comment
+    if (comment && comment.text) {
+      ticket.comments.push({
+        text: comment.text,
+        author: comment.author || req.user.name || 'Admin',
+        timestamp: new Date()
+      });
+    }
+
+    // Support replacing the whole comments array (legacy)
+    if (comments && Array.isArray(comments)) {
+      ticket.comments = comments;
+    }
+
+    const updatedTicket = await ticket.save();
+    res.json(updatedTicket);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+// @desc    Update ticket (PATCH - also supported)
 // @route   PATCH /api/tickets/:id
 // @access  Private/Admin
 router.patch('/:id', protect, admin, async (req, res) => {
