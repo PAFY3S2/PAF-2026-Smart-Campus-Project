@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, RefreshCcw } from 'lucide-react';
+import { ArrowLeft, Loader2, RefreshCcw, X } from 'lucide-react';
 import resourceService from '../../services/resourceService';
 import ResourceForm from '../../components/resources/ResourceForm';
 import Toast from '../../components/common/Toast';
+import { resolveImage } from '../../utils/imageUtils';
 
 const EditResource = () => {
   const { id } = useParams();
@@ -42,7 +43,7 @@ const EditResource = () => {
         image: null
       });
       if (resource.imageUrl) {
-        setImagePreview(resource.imageUrl);
+        setImagePreview(resolveImage(resource.imageUrl));
       }
     } catch (err) {
       setApiError('Failed to load resource details.');

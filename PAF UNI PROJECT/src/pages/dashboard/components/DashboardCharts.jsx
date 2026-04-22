@@ -47,9 +47,9 @@ const DashboardCharts = ({ resourcesData, bookingsData }) => {
       {/* Resource Status Pie Chart */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 text-sm uppercase tracking-wider">Resource Status</h3>
-        <div className="h-64">
+        <div className="h-64 w-full min-w-0 min-h-0" style={{ position: 'relative' }}>
         {resourcesData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie
                 data={pieData}
@@ -79,9 +79,9 @@ const DashboardCharts = ({ resourcesData, bookingsData }) => {
       {/* Bookings Trend Line Chart */}
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 text-sm uppercase tracking-wider">Bookings Trend (Last 7 Days)</h3>
-        <div className="h-64">
+        <div className="h-64 w-full min-w-0 min-h-0" style={{ position: 'relative' }}>
         {bookingsData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="99%" height="100%" minWidth={1} minHeight={1}>
             <LineChart data={lineData} margin={{ top: 5, right: 20, bottom: 5, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
               <XAxis dataKey="display" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />

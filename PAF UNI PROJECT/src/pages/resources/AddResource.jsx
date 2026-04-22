@@ -132,8 +132,8 @@ const AddResource = () => {
     try {
       const payload = buildFormDataPayload(formData);
 
-      await resourceService.createResource(payload);
-      navigate('/resources', { state: { message: 'Resource added successfully!' } });
+      const newResource = await resourceService.createResource(payload);
+      navigate('/resources', { state: { message: 'Resource added successfully!', newResource } });
     } catch (err) {
       setApiError(err.response?.data?.message || 'Failed to add resource. Please try again.');
     } finally {

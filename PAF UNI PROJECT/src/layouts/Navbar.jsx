@@ -12,7 +12,9 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
 
   useEffect(() => {
     if (user) {
-      api.get('/notifications').then((res) => setNotifications(res.data));
+      api.get('/notifications')
+        .then((res) => setNotifications(res.data))
+        .catch(() => setNotifications([]));
     }
   }, [user]);
 

@@ -21,9 +21,9 @@ const Dashboard = () => {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      api.get('/resources'),
-      api.get('/bookings'),
-      api.get('/tickets')
+      api.get('/resources').catch(() => ({ data: [] })),
+      api.get('/bookings').catch(() => ({ data: [] })),
+      api.get('/tickets').catch(() => ({ data: [] }))
     ]).then(([resRes, bookRes, tickRes]) => {
       setStats({
         resources: resRes.data.length,

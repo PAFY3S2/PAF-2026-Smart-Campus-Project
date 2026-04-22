@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Monitor, Building, Clock, MapPin, Users, CheckCircle, AlertTriangle, CalendarPlus, Copy, Wrench, XCircle, RefreshCcw } from 'lucide-react';
 import resourceService from '../../services/resourceService';
+import { resolveImage } from '../../utils/imageUtils';
 
 const ResourceDetails = () => {
   const { id } = useParams();
@@ -128,13 +129,11 @@ const ResourceDetails = () => {
         {resource.imageUrl ? (
           <div className="w-full h-64 md:h-80 relative overflow-hidden bg-slate-900">
             <img 
-              src={resource.imageUrl} 
-              alt={resource.name} 
-              className="w-full h-full object-cover opacity-80"
+              src={resolveImage(resource.imageUrl)}
               onError={(e) => {
-                e.target.onerror = null; 
-                e.target.src = 'https://placehold.co/800x400/1e293b/94a3b8?text=Image+Not+Available'; 
+                e.target.src = "/placeholder.png";
               }}
+              className="w-full h-full object-cover opacity-80"
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent p-6 md:p-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div>

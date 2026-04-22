@@ -46,7 +46,8 @@ public class FileStorageService {
             // Replace existing files locally without crash
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            return "/uploads/" + fileName;
+            // Return fully qualified local URL payload as explicitly requested
+            return "http://localhost:8080/uploads/" + fileName;
         } catch (IOException ex) {
             throw new RuntimeException("Could not store file " + fileName + ". Please try again!", ex);
         }
@@ -60,7 +61,9 @@ public class FileStorageService {
         try {
             // Unpack URL path prefix cleanly extracting filename
             String fileName = fileUrl;
-            if (fileUrl.startsWith("/uploads/")) {
+            if (fileUrl.startsWith("http://localhost:8080/uploads/")) {
+                fileName = fileUrl.substring("http://localhost:8080/uploads/".length());
+            } else if (fileUrl.startsWith("/uploads/")) {
                 fileName = fileUrl.substring("/uploads/".length());
             }
             

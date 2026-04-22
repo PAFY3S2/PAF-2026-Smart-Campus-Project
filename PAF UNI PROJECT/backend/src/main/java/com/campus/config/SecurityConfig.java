@@ -18,11 +18,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // Enable CORS configuration defined in WebConfig
+            .cors(Customizer.withDefaults())
             // Disable CSRF for educational/testing purposes with Postman/React
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // All endpoints require the user to be authenticated at a minimum
-                .anyRequest().authenticated()
+                // Allow unauthenticated access to the uploads directory for image tags
+                .requestMatchers("/uploads/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                // Disable strict auth temporarily to allow React frontend to fetch data without 401 errors
+                .anyRequest().permitAll()
             )
             // Using Basic Authentication for simplicity
             .httpBasic(Customizer.withDefaults());

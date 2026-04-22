@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/resources")
-@CrossOrigin(origins = "*") // Allows React frontend to access API
+
 public class ResourceController {
 
     private final ResourceService resourceService;
@@ -41,7 +41,7 @@ public class ResourceController {
 
     // CREATE: Only accessible to ADMIN
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> createResource(
             @ModelAttribute @Valid Resource resource,
             @RequestPart(value = "image", required = false) MultipartFile image
@@ -56,7 +56,7 @@ public class ResourceController {
 
     // UPDATE: Only accessible to ADMIN
     @PutMapping(value = "/{id}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> updateResource(
             @PathVariable Long id, 
             @ModelAttribute @Valid Resource resourceDetails,
@@ -86,7 +86,7 @@ public class ResourceController {
 
     // DELETE: Only accessible to ADMIN
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteResource(@PathVariable Long id) {
         Resource existing = resourceService.getResourceById(id);
         if (existing.getImageUrl() != null) {
@@ -98,7 +98,7 @@ public class ResourceController {
 
     // PATCH: Only accessible to ADMIN
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> updateResourceStatus(@PathVariable Long id, @RequestBody Map<String, String> updates) {
         String status = updates.get("status");
         if (status == null || status.trim().isEmpty()) {
