@@ -2,13 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 import { toast } from 'sonner';
 
-export const useTickets = (type = 'active') => {
+export const useTickets = (type = 'active', params = {}) => {
   const endpoint = type === 'active' ? '/technician/active-assignments' : `/technician/${type}`;
   
   return useQuery({
-    queryKey: ['tickets', type],
+    queryKey: ['tickets', type, params],
     queryFn: async () => {
-      const { data } = await api.get(endpoint);
+      const { data } = await api.get(endpoint, { params });
       return data;
     },
   });
@@ -46,6 +46,7 @@ export const useUpdateTicketStatus = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       toast.success(`Ticket marked as ${variables.status.toLowerCase()}`);
     },
     onError: (error) => {
@@ -58,15 +59,15 @@ export const useAddTicketNote = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, note }) => {
-      const { data } = await api.post(`/tickets/${id}/notes`, { note });
+      const { data } = await api.post(`/technician/tickets/${id}/notes`, { note });
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
-      toast.success('Note added successfully');
+      toast.success('Internal note encrypted and saved');
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || 'Failed to add note');
+      toast.error(error.response?.data?.message || 'Failed to save tactical note');
     },
   });
 };

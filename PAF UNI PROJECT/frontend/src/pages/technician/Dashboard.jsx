@@ -8,48 +8,42 @@ import clsx from 'clsx';
 import { toast } from 'sonner';
 
 import { useTickets, useUpdateTicketStatus, useAddTicketNote } from '../../hooks/useTickets';
+import { useTechnicianStats } from '../../hooks/useTechnicianStats';
+import { z } from 'zod';
+
+const noteSchema = z.string().min(1, "Note cannot be empty").max(2000, "Note must be under 2000 characters");
 
 const Dashboard = () => {
   const { user } = useAuth();
   
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    priority: '',
+    from: '',
+    to: ''
+  });
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: debouncedSearch }));
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [debouncedSearch]);
+
   // Use TanStack Query hooks
-  const { data: tickets = [], isLoading: isTicketsLoading } = useTickets('active-assignments');
+  const { data: tickets = [], isLoading: isTicketsLoading, isFetching: isTicketsFetching } = useTickets('active-assignments', filters);
+  const { data: stats, isLoading: isStatsLoading, isError: isStatsError } = useTechnicianStats();
   const updateStatus = useUpdateTicketStatus();
   const addNote = useAddTicketNote();
-  
-  const [stats, setStats] = useState({
-    assigned: 0,
-    inProgress: 0,
-    resolved: 0,
-    highPriority: 0
-  });
   
   // Modal States
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [noteText, setNoteText] = useState('');
-
-  const fetchStats = async () => {
-    try {
-      const statsRes = await api.get(`/tickets/stats/${user?.id}`).catch(() => ({ data: { assigned: 0, open: 0, inProgress: 0, resolved: 0, highPriority: 0 } }));
-      const s = statsRes.data;
-      setStats({
-        assigned: s.assigned || 0,
-        inProgress: s.inProgress || 0,
-        resolved: s.resolved || 0,
-        highPriority: s.highPriority || 0
-      });
-    } catch (err) {
-      console.error('Failed to fetch stats:', err);
-    }
-  };
-
-  useEffect(() => {
-    if (user?.id) {
-       fetchStats();
-    }
-  }, [user?.id, tickets]); // Refresh stats when tickets change
 
   const handleUpdateStatus = (id, status) => {
     updateStatus.mutate({ id, status });
@@ -80,17 +74,25 @@ const Dashboard = () => {
   };
 
   const handleSaveNote = () => {
-    if (!selectedTicket || !noteText.trim()) return;
-    addNote.mutate({ 
-      id: selectedTicket.id, 
-      note: noteText 
-    }, {
-      onSuccess: () => {
-        setIsNoteModalOpen(false);
-        setSelectedTicket(null);
-        setNoteText('');
+    if (!selectedTicket) return;
+    
+    try {
+      noteSchema.parse(noteText);
+      addNote.mutate({ 
+        id: selectedTicket.id, 
+        note: noteText 
+      }, {
+        onSuccess: () => {
+          setIsNoteModalOpen(false);
+          setSelectedTicket(null);
+          setNoteText('');
+        }
+      });
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
       }
-    });
+    }
   };
 
   const handleDownloadReport = () => {
@@ -101,7 +103,7 @@ const Dashboard = () => {
       headers.join(","),
       ...tickets.map(t => [
         t.id,
-        `"${t.subject || t.title}"`,
+        `"${t.description || ''}"`,
         t.priority,
         `"${t.room || t.location || t.building || ''}"`,
         t.status,
@@ -176,10 +178,10 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Assigned Tickets" value={stats.assigned} icon={Ticket} color="blue" />
-        <StatCard title="In Progress" value={stats.inProgress} icon={Clock} color="amber" />
-        <StatCard title="Resolved Operations" value={stats.resolved} icon={CheckCircle} color="emerald" />
-        <StatCard title="Priority Alerts" value={stats.highPriority} icon={AlertCircle} color="rose" />
+        <StatCard title="Assigned Tickets" value={isStatsError ? '—' : stats?.assignedCount} icon={Ticket} color="blue" isLoading={isStatsLoading} />
+        <StatCard title="In Progress" value={isStatsError ? '—' : stats?.inProgressCount} icon={Clock} color="amber" isLoading={isStatsLoading} />
+        <StatCard title="Resolved Operations" value={isStatsError ? '—' : stats?.resolvedCount} icon={CheckCircle} color="emerald" isLoading={isStatsLoading} />
+        <StatCard title="Priority Alerts" value={isStatsError ? '—' : stats?.priorityCount} icon={AlertCircle} color="rose" isLoading={isStatsLoading} />
       </div>
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -188,20 +190,75 @@ const Dashboard = () => {
             <h2 className="text-lg font-black text-[#142B5D] dark:text-white uppercase tracking-tighter">My Active Assignments</h2>
             <p className="text-[10px] font-black text-[#F5AB24] uppercase tracking-widest mt-1">Institutional Technical Support Queue</p>
           </div>
-          <button 
-            onClick={handleDownloadReport}
-            className="flex items-center space-x-2 px-4 py-2 bg-[#142B5D] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#0D1E40] transition shadow-md"
-          >
-            <FileDown className="w-4 h-4" />
-            <span>Generate Status Report</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            <div className="relative group">
+              <input 
+                type="text" 
+                placeholder="Search ID, description or student..."
+                value={debouncedSearch}
+                onChange={(e) => setDebouncedSearch(e.target.value)}
+                className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-[#F5AB24] rounded-lg text-xs font-bold text-[#142B5D] dark:text-white transition-all w-64 outline-none"
+              />
+              <Ticket className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-[#F5AB24] transition-colors" />
+            </div>
+
+            <select 
+              value={filters.status}
+              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-[#F5AB24] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white outline-none"
+            >
+              <option value="">All Statuses</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+            </select>
+
+            <select 
+              value={filters.priority}
+              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
+              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-[#F5AB24] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white outline-none"
+            >
+              <option value="">All Priorities</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+
+            {(filters.search || filters.status || filters.priority || filters.from || filters.to) && (
+              <button 
+                onClick={() => {
+                  setDebouncedSearch('');
+                  setFilters({ search: '', status: '', priority: '', from: '', to: '' });
+                }}
+                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+              >
+                Clear Filters
+              </button>
+            )}
+
+            <button 
+              onClick={handleDownloadReport}
+              className="flex items-center space-x-2 px-4 py-2 bg-[#142B5D] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#0D1E40] transition shadow-md"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>Report</span>
+            </button>
+          </div>
         </div>
-        <TicketTable 
-            tickets={tickets} 
-            onUpdateStatus={handleUpdateStatus} 
-            onAddNote={handleAddNoteRequest}
-            onComplete={handleCompleteRequest}
-        />
+        <div className="relative">
+          {(isTicketsFetching && !isTicketsLoading) && (
+            <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
+              <div className="w-8 h-8 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
+            </div>
+          )}
+          <TicketTable 
+              tickets={tickets} 
+              onUpdateStatus={handleUpdateStatus} 
+              onAddNote={handleAddNoteRequest}
+              onComplete={handleCompleteRequest}
+              isLoading={isTicketsLoading}
+          />
+        </div>
       </div>
 
       {/* CONFIRM COMPLETE MODAL */}

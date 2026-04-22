@@ -1,6 +1,7 @@
 const { auth, checkRole } = require('../middleware/auth');
 const Comment = require('../models/Comment');
 const Notification = require('../models/Notification');
+const Ticket = require('../models/Ticket');
 const express = require('express');
 const router = express.Router();
 
@@ -52,10 +53,11 @@ router.get('/:id', auth, async (req, res) => {
 
     // Access control: Admin, Assigned Technician, or Submitter
     const isAdmin = req.user.role === 'ADMIN';
+    const isTechnician = req.user.role === 'TECHNICIAN';
     const isOwner = ticket.userId._id.toString() === req.user.id.toString();
     const isAssigned = ticket.technicianId && ticket.technicianId._id.toString() === req.user.id.toString();
 
-    if (!isAdmin && !isOwner && !isAssigned) {
+    if (!isAdmin && !isTechnician && !isOwner && !isAssigned) {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -186,6 +188,60 @@ router.delete('/:id/comments/:commentId', auth, async (req, res) => {
 
     await comment.deleteOne();
     res.json({ message: 'Comment deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @route   GET /api/tickets/:id/evidence
+// @desc    Get evidence images for a ticket
+router.get('/:id/evidence', auth, async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id).select('images');
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+    res.json(ticket.images || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @route   POST /api/tickets/:id/messages
+// @desc    Send a message (communication thread)
+router.post('/:id/messages', auth, async (req, res) => {
+  try {
+    const { content, senderType } = req.body;
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+
+    // Use existing comments array for the thread
+    ticket.comments.push({
+      text: content,
+      author: req.user.name,
+      senderType: senderType || (req.user.role === 'TECHNICIAN' ? 'technician' : 'user')
+    });
+
+    await ticket.save();
+    res.json(ticket.comments[ticket.comments.length - 1]);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// @route   POST /api/tickets/:id/notes
+// @desc    Add internal technician note
+router.post('/:id/notes', auth, checkRole(['TECHNICIAN', 'ADMIN']), async (req, res) => {
+  try {
+    const { content } = req.body;
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+
+    ticket.ticketNotes.push({
+      body: content,
+      authorId: req.user.id
+    });
+
+    await ticket.save();
+    res.json(ticket.ticketNotes[ticket.ticketNotes.length - 1]);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

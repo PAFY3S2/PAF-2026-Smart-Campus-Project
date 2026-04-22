@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import QuickViewModal from './QuickViewModal';
 import { format } from 'date-fns';
 
-const TicketTable = ({ tickets = [], onUpdateStatus, onAddNote, onComplete, pageType = 'active' }) => {
+const TicketTable = ({ tickets = [], onUpdateStatus, onAddNote, onComplete, pageType = 'active', isLoading }) => {
   const navigate = useNavigate();
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +42,7 @@ const TicketTable = ({ tickets = [], onUpdateStatus, onAddNote, onComplete, page
         <thead className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
           <tr>
             <th className="px-6 py-4">ID</th>
-            <th className="px-6 py-4">Title & Description</th>
+            <th className="px-6 py-4">Description</th>
             <th className="px-6 py-4">Status & Priority</th>
             <th className="px-6 py-4">Submitted By</th>
             <th className="px-6 py-4">Submission Details</th>
@@ -53,10 +53,20 @@ const TicketTable = ({ tickets = [], onUpdateStatus, onAddNote, onComplete, page
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-          {tickets.length === 0 ? (
+          {isLoading ? (
+            Array(5).fill(0).map((_, i) => (
+              <tr key={i} className="animate-pulse">
+                 {Array(8).fill(0).map((_, j) => (
+                   <td key={j} className="px-6 py-5">
+                      <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-full" />
+                   </td>
+                 ))}
+              </tr>
+            ))
+          ) : tickets.length === 0 ? (
             <tr>
-              <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-widest animate-pulse">
-                Zero tickets found in this category
+              <td colSpan={8} className="px-6 py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-widest italic">
+                Zero tickets found in this query
               </td>
             </tr>
           ) : (
@@ -66,14 +76,15 @@ const TicketTable = ({ tickets = [], onUpdateStatus, onAddNote, onComplete, page
                    <span className="font-black text-[#142B5D] dark:text-[#F5AB24] text-xs"># {ticket.id.substring(ticket.id.length - 6).toUpperCase()}</span>
                 </td>
                 <td className="px-6 py-5 max-w-xs">
-                  <p className="font-bold text-sm text-[#142B5D] dark:text-slate-200 line-clamp-1">{ticket.subject || ticket.title || 'Untitled Ticket'}</p>
-                  <div className="flex items-center mt-1">
-                    <p className="text-[10px] text-slate-400 truncate flex-1">{ticket.description}</p>
+                  <div className="flex flex-col">
+                    <p className="text-xs text-[#142B5D] dark:text-slate-300 font-medium line-clamp-2 leading-relaxed">
+                      {ticket.description}
+                    </p>
                     <button 
                       onClick={() => navigate(`/tickets/${ticket.id}`)}
-                      className="ml-2 text-[10px] font-black text-[#F5AB24] hover:underline uppercase"
+                      className="mt-2 text-[10px] font-black text-[#F5AB24] hover:underline uppercase text-left w-fit"
                     >
-                      View
+                      View Details
                     </button>
                   </div>
                 </td>

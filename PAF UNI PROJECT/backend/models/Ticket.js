@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const commentSchema = new mongoose.Schema({
   text: { type: String, required: true },
   author: { type: String, required: true },
+  senderType: { type: String, enum: ['user', 'technician'], default: 'user' }
 }, { timestamps: true });
 
 const ticketSchema = new mongoose.Schema({

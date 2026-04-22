@@ -21,7 +21,7 @@ import TechInProgress from '../pages/technician/InProgress';
 import TechResolved from '../pages/technician/Resolved';
 import TechPriority from '../pages/technician/Priority';
 import TechClosedHistory from '../pages/technician/ClosedHistory';
-import TechTicketDetails from '../pages/technician/TicketDetails';
+import TechTicketDetails from '../pages/technician/TicketDetailsPage';
 import TechProfile from '../pages/technician/Profile';
 import Home from '../pages/home/Home';
 import Profile from '../pages/profile/Profile';
@@ -45,6 +45,7 @@ const AppRoutes = () => {
           <Route path="/technician/priority" element={<TechPriority />} />
           <Route path="/technician/closed" element={<TechClosedHistory />} />
           <Route path="/technician/profile" element={<TechProfile />} />
+          <Route path="/technician/tickets/details/:id" element={<TechTicketDetails />} />
           <Route path="/tickets/:id" element={<TechTicketDetails />} />
           {/* Compatibility for old links */}
           <Route path="/technician/tickets" element={<Navigate to="/technician/dashboard" replace />} />

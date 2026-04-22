@@ -14,8 +14,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import StatusBadge from '../../components/technician/StatusBadge';
-import UpdateTimeline from '../../components/technician/UpdateTimeline';
-import AttachmentUploader from '../../components/technician/AttachmentUploader';
 import api from '../../services/api';
 
 import { useAuth } from '../../context/AuthContext';
@@ -67,9 +65,28 @@ const TicketDetails = () => {
     }
   };
 
-  if (isTicketLoading || !ticket) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-10 h-10 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
+  if (isTicketLoading) return (
+    <div className="flex flex-col items-center justify-center h-screen space-y-4">
+      <div className="w-12 h-12 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Syncing Operational Data...</p>
+    </div>
+  );
+
+  if (!ticket) return (
+    <div className="flex flex-col items-center justify-center h-screen space-y-6">
+      <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-full text-rose-500">
+         <Activity className="w-12 h-12" />
+      </div>
+      <div className="text-center">
+        <h3 className="text-2xl font-black text-[#142B5D] dark:text-white uppercase tracking-tighter mb-2">Operational Fault</h3>
+        <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Ticket not found or access denied</p>
+      </div>
+      <button 
+        onClick={() => navigate('/technician/dashboard')}
+        className="px-8 py-3 bg-[#142B5D] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#0D1E40] transition"
+      >
+        Return to Hub
+      </button>
     </div>
   );
 
@@ -113,28 +130,36 @@ const TicketDetails = () => {
              </div>
           </div>
 
-          {/* PHOTO GALLERY */}
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-             <div className="flex items-center space-x-2 mb-4">
-                <Info className="w-4 h-4 text-[#F5AB24]" />
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ticket Photos</h4>
+             <div className="flex items-center space-x-2 mb-6">
+                <ShieldCheck className="w-4 h-4 text-[#F5AB24]" />
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Evidence / Photos</h4>
              </div>
-             {ticket.images && ticket.images.length > 0 ? (
-               <div className="grid grid-cols-1 gap-4">
-                 {ticket.images.slice(0, 3).map((img, idx) => (
-                   <div key={idx} className="relative group rounded-xl overflow-hidden aspect-video border border-slate-200 dark:border-slate-700">
-                     <img 
-                       src={img} 
-                       alt={`Ticket Photo ${idx + 1}`} 
-                       className="w-full h-full object-cover transition-transform group-hover:scale-105 cursor-pointer"
-                       onClick={() => window.open(img, '_blank')}
-                     />
+             <div className="grid grid-cols-1 gap-4">
+               {[0, 1, 2].map((idx) => {
+                 const img = ticket.images?.[idx];
+                 return (
+                   <div key={idx} className={clsx(
+                     "relative rounded-xl overflow-hidden aspect-video border-2 flex items-center justify-center transition-all",
+                     img ? "border-slate-200 dark:border-slate-700" : "border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20"
+                   )}>
+                     {img ? (
+                       <img 
+                         src={img} 
+                         alt={`Evidence ${idx + 1}`} 
+                         className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                         onClick={() => window.open(img, '_blank')}
+                       />
+                     ) : (
+                       <div className="text-center p-4">
+                         <MapPin className="w-6 h-6 text-slate-200 dark:text-slate-800 mx-auto mb-2" />
+                         <span className="text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">No image provided</span>
+                       </div>
+                     )}
                    </div>
-                 ))}
-               </div>
-             ) : (
-               <p className="text-xs font-bold text-slate-400 italic">No photos provided with this ticket.</p>
-             )}
+                 );
+               })}
+             </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
