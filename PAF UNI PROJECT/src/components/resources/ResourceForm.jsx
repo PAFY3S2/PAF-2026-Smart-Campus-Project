@@ -274,7 +274,7 @@ const ResourceForm = ({
           <button
             type="submit"
             disabled={isSubmitting || !isFormValid}
-            className="px-6 py-2 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary-hover disabled:opacity-70 disabled:cursor-not-allowed transition flex items-center shadow-sm"
+            className="px-6 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition flex items-center shadow-sm"
           >
             {isSubmitting ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

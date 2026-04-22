@@ -2,12 +2,10 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@layer theme {
-  :root {
-    --color-primary: #4f46e5;
-    --color-primary-hover: #4338ca;
-    --color-secondary: #64748b;
-  }
+@theme {
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-secondary: #64748b;
 }
 
 body {
