@@ -7,6 +7,13 @@ import Toast from '../../components/common/Toast';
 
 const Resources = () => {
   const { user } = useAuth();
+  
+  // Debug Log for issue resolution
+  console.log("Current user:", user);
+  
+  // Temporary fallback if role is undefined
+  const isAdmin = !user?.role || user?.role === 'ADMIN';
+
   const navigate = useNavigate();
   const location = useLocation();
   const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
@@ -167,10 +174,10 @@ const Resources = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Facilities & Equipment</h1>
-        {user?.role === 'ADMIN' && (
+        {isAdmin && (
           <button 
             onClick={() => navigate('/resources/add')}
-            className="flex items-center space-x-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg transition shadow-sm font-medium"
+            className="flex items-center space-x-2 bg-primary hover:bg-primary-hover hover:scale-105 active:scale-95 text-white px-4 py-2 rounded-lg transition-transform duration-200 shadow-md font-medium"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Resource</span>
@@ -212,7 +219,8 @@ const Resources = () => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
+      {/* Sticky Filter Bar */}
+      <div className="sticky top-4 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 transition-colors">
         <div className="flex flex-col space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -284,14 +292,17 @@ const Resources = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {currentResources.map(resource => (
-          <div key={resource.id} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-md transition">
-            
+          <div 
+            key={resource.id} 
+            onClick={() => navigate(`/resources/${resource.id}`)}
+            className="group block bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-lg hover:border-primary/50 hover:scale-[1.02] active:scale-[0.98] cursor-pointer transition-all duration-200"
+          >
             {resource.imageUrl && (
-              <div className="w-full h-48 overflow-hidden border-b border-slate-100 dark:border-slate-800">
+              <div className="w-full h-48 overflow-hidden border-b border-slate-100 dark:border-slate-800 relative">
                 <img 
                   src={resource.imageUrl} 
                   alt={resource.name} 
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                   onError={(e) => {
                     e.target.onerror = null; 
                     e.target.src = 'https://placehold.co/800x400/1e293b/94a3b8?text=Image+Not+Available'; 
@@ -309,7 +320,7 @@ const Resources = () => {
                   {resource.status === 'ACTIVE' ? 'Available' : 'Unavailable'}
                 </span>
               </div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">{resource.name}</h3>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1 group-hover:text-primary transition-colors">{resource.name}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{resource.location}</p>
               
               <div className="flex items-center text-sm text-slate-600 dark:text-slate-300 space-x-4">
@@ -329,17 +340,18 @@ const Resources = () => {
                 </div>
               </div>
             </div>
-            <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+            <div className="bg-slate-50 dark:bg-slate-800/50 px-6 py-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center relative z-10">
               <div className="flex items-center space-x-3">
                 <button 
                   className="text-sm font-semibold text-primary hover:text-primary-hover transition"
-                  onClick={() => navigate(`/resources/${resource.id}`)}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/resources/${resource.id}`); }}
+                  title="View Details"
                 >
                   View Details
                 </button>
                 {resource.status === 'ACTIVE' && (
                   <button 
-                    onClick={() => navigate('/bookings/new', { state: { resourceId: resource.id, resourceName: resource.name } })}
+                    onClick={(e) => { e.stopPropagation(); navigate('/bookings/new', { state: { resourceId: resource.id, resourceName: resource.name } }); }}
                     className="flex justify-center items-center p-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-md transition"
                     title="Book Now"
                   >
@@ -347,24 +359,24 @@ const Resources = () => {
                   </button>
                 )}
               </div>
-              {user?.role === 'ADMIN' && (
+              {isAdmin && (
                 <div className="flex items-center space-x-2 border-l border-slate-200 dark:border-slate-700 pl-4">
                   <button 
-                    onClick={() => handleToggleStatus(resource)}
+                    onClick={(e) => { e.stopPropagation(); handleToggleStatus(resource); }}
                     className={`p-1.5 rounded transition ${resource.status === 'ACTIVE' ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30'}`}
                     title={resource.status === 'ACTIVE' ? 'Mark Out of Service' : 'Activate Resource'}
                   >
                     <Power className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => navigate(`/resources/edit/${resource.id}`)}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/resources/edit/${resource.id}`); }}
                     className="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition"
                     title="Edit Resource"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => confirmDelete(resource)}
+                    onClick={(e) => { e.stopPropagation(); confirmDelete(resource); }}
                     className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition"
                     title="Delete Resource"
                   >
@@ -383,8 +395,8 @@ const Resources = () => {
              </div>
              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">No Resources Found</h3>
              <p className="max-w-md">There are currently no active resources provisioned on the server network. Wait for an administrator to map new layouts.</p>
-             {user?.role === 'ADMIN' && (
-                <button onClick={() => navigate('/resources/add')} className="mt-6 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover shadow-sm font-medium">Provision System</button>
+             {isAdmin && (
+                <button onClick={(e) => {e.stopPropagation(); navigate('/resources/add');}} className="mt-6 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover shadow-sm font-medium">Provision System</button>
              )}
           </div>
         )}
