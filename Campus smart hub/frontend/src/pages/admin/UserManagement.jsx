@@ -3,13 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Search, 
-  Filter, 
   Shield, 
   User as UserIcon, 
-  ArrowUpRight
+  ArrowUpRight,
+  UserCheck,
+  Wrench,
+  GraduationCap,
+  Mail,
+  Hash,
+  Building2,
+  Phone,
+  CalendarDays
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
+import technicianDefault from '../../assets/technician_default.png';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -44,118 +52,241 @@ const UserManagement = () => {
     setFilteredUsers(result);
   }, [searchTerm, filterRole, users]);
 
+  // Stats
+  const stats = {
+    total: users.length,
+    students: users.filter(u => u.role === 'USER').length,
+    admins: users.filter(u => u.role === 'ADMIN').length,
+    technicians: users.filter(u => u.role === 'TECHNICIAN').length,
+  };
+
+  const roleBadge = (role) => {
+    const map = {
+      ADMIN: { bg: 'bg-rose-500/10', text: 'text-rose-400', ring: 'ring-1 ring-rose-500/30', icon: Shield, label: 'Admin' },
+      TECHNICIAN: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', ring: 'ring-1 ring-emerald-500/30', icon: Wrench, label: 'Technician' },
+      USER: { bg: 'bg-blue-500/10', text: 'text-blue-400', ring: 'ring-1 ring-blue-500/30', icon: GraduationCap, label: 'Student' },
+    };
+    return map[role] || map.USER;
+  };
+
   return (
     <div className="space-y-8 pb-12">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div>
-          <span className="text-[10px] font-black tracking-[0.4em] text-primary uppercase mb-2 block animate-pulse">ADMIN :: PERSONNEL DIRECTORY</span>
-          <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic">User Management</h1>
-        </div>
+      {/* HEADER */}
+      <div>
+        <span className="text-[10px] font-bold tracking-[0.3em] text-primary uppercase mb-2 block">
+          MODULE U: PERSONNEL DIRECTORY
+        </span>
+        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          User Directory
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">View and manage all registered users across the platform.</p>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="relative">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-             <input 
-              type="text" 
-              placeholder="Search Name, Email, or ID..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="bg-slate-900 border border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:ring-1 focus:ring-primary outline-none text-slate-300 w-64 transition-all placeholder:text-slate-700"
-             />
-          </div>
-          
-          <div className="flex items-center space-x-2 bg-slate-900 p-1 rounded-xl border border-slate-800">
-            {['ALL', 'USER', 'ADMIN', 'TECHNICIAN'].map(role => (
-              <button
-                key={role}
-                onClick={() => setFilterRole(role)}
-                className={`px-4 py-1.5 rounded-lg text-[9px] font-black tracking-widest transition-all uppercase ${filterRole === role ? 'bg-blue-900 dark:bg-white text-white dark:text-blue-900 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
-              >
-                {role}
-              </button>
-            ))}
-          </div>
+      {/* STATS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Users', val: stats.total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+          { label: 'Students', val: stats.students, icon: GraduationCap, color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+          { label: 'Admins', val: stats.admins, icon: Shield, color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+          { label: 'Technicians', val: stats.technicians, icon: Wrench, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+        ].map((s, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
+            className={`${s.bg} border ${s.border} rounded-2xl p-5 flex items-center justify-between`}
+          >
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">{s.label}</p>
+              <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
+            </div>
+            <s.icon className={`w-8 h-8 ${s.color} opacity-40`} />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* FILTERS */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
+          <input 
+            type="text" 
+            placeholder="Search by name, email, or student ID..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary outline-none text-slate-900 dark:text-slate-300 w-72 transition-all"
+          />
+        </div>
+        
+        <div className="flex items-center space-x-2 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+          {['ALL', 'USER', 'ADMIN', 'TECHNICIAN'].map(role => (
+            <motion.button
+              key={role}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setFilterRole(role)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold tracking-widest transition-all ${
+                filterRole === role 
+                  ? 'bg-primary text-white shadow-lg' 
+                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              }`}
+            >
+              {role === 'USER' ? 'STUDENT' : role}
+              {role !== 'ALL' && (
+                <span className="ml-1.5 text-[8px] opacity-60">
+                  ({role === 'USER' ? stats.students : role === 'ADMIN' ? stats.admins : role === 'TECHNICIAN' ? stats.technicians : stats.total})
+                </span>
+              )}
+            </motion.button>
+          ))}
         </div>
       </div>
 
-      <div className="bg-slate-950 border border-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden">
+      {/* TABLE */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
         {loading ? (
-          <div className="p-32 text-center text-slate-700 font-extrabold tracking-[0.5em] uppercase animate-pulse">Syncing Directory Nodes...</div>
+          <div className="p-20 text-center text-slate-500 font-bold tracking-widest animate-pulse">LOADING USERS...</div>
         ) : filteredUsers.length === 0 ? (
-          <div className="p-32 text-center flex flex-col items-center">
-             <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center mb-6 border border-slate-800">
-               <Users className="w-8 h-8 text-slate-700" />
-             </div>
-             <p className="text-slate-500 font-black tracking-widest text-[10px] uppercase">Zero results matched current query</p>
+          <div className="p-20 text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-slate-400 dark:text-slate-600" />
+            </div>
+            <p className="text-slate-500 font-bold tracking-widest text-sm uppercase">No users match your search</p>
           </div>
         ) : (
-          <div className="overflow-x-auto overflow-y-hidden">
-            <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left border-collapse">
               <thead>
-                <tr className="bg-slate-900/50 border-b border-slate-900">
-                  <th className="px-10 py-6 font-black text-[10px] text-slate-600 uppercase tracking-[.3em]">Institutional Entity</th>
-                  <th className="px-6 py-6 font-black text-[10px] text-slate-600 uppercase tracking-[.3em]">Access Role</th>
-                  <th className="px-6 py-6 font-black text-[10px] text-slate-600 uppercase tracking-[.3em]">Student ID</th>
-                  <th className="px-6 py-6 font-black text-[10px] text-slate-600 uppercase tracking-[.3em]">Lifecycle</th>
-                  <th className="px-10 py-6 font-black text-[10px] text-slate-600 uppercase tracking-[.3em] text-right">Actions</th>
+                <tr className="bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800">
+                  <th className="px-8 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">User</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Role</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Student ID</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Faculty</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Contact</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Joined</th>
+                  <th className="px-8 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em] text-right">View</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-900">
-                {filteredUsers.map((u) => (
-                  <motion.tr 
-                    initial={{ opacity: 0 }} 
-                    animate={{ opacity: 1 }}
-                    key={u._id} 
-                    className="hover:bg-slate-900/40 transition-all group cursor-pointer"
-                    onClick={() => navigate(`/admin/users/${u._id}`)}
-                  >
-                    <td className="px-10 py-6">
-                       <div className="flex items-center space-x-4">
-                         <div className="relative">
-                            <img src={u.avatar} className="w-11 h-11 rounded-xl border border-slate-800 object-cover" alt="" />
-                            <div className="absolute -inset-1 bg-primary/20 blur opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
-                         </div>
-                         <div>
-                           <p className="font-black text-white text-sm uppercase tracking-tight group-hover:text-primary transition-colors">{u.name}</p>
-                           <p className="text-[10px] text-slate-500 font-bold tracking-tight">{u.email}</p>
-                         </div>
-                       </div>
-                    </td>
-                    <td className="px-6 py-6">
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-[9px] font-black tracking-widest border shadow-sm uppercase
-                        ${u.role === 'ADMIN' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 
-                          u.role === 'TECHNICIAN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                          'bg-primary/10 text-primary border-primary/20'}`}
-                      >
-                        <Shield className="w-3 h-3 mr-2" />
-                        {u.role}
-                      </div>
-                    </td>
-                    <td className="px-6 py-6">
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
-                         {u.studentId || 'ID#_UNDEF'}
-                       </span>
-                    </td>
-                    <td className="px-6 py-6">
-                       <div className="flex flex-col gap-1">
-                         <div className="text-[9px] font-black text-slate-600 uppercase">Registered</div>
-                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                           {new Date(u.createdAt).toLocaleDateString('en-US', {month: 'short', year: 'numeric'})}
-                         </div>
-                       </div>
-                    </td>
-                    <td className="px-10 py-6 text-right">
-                       <div className="p-2.5 bg-slate-900 border border-slate-800 rounded-xl text-slate-500 inline-block group-hover:text-primary group-hover:border-primary/50 transition-all shadow-inner">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                {filteredUsers.map((u, i) => {
+                  const badge = roleBadge(u.role);
+                  return (
+                    <motion.tr 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.03 }}
+                      key={u._id} 
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all group cursor-pointer"
+                      onClick={() => navigate(`/admin/users/${u._id}`)}
+                    >
+                      {/* User Info */}
+                      <td className="px-8 py-5">
+                        <div className="flex items-center space-x-3">
+                          <div className="relative">
+                            <img 
+                              src={u.avatar && !u.avatar.includes('ui-avatars.com') ? u.avatar : (u.role === 'TECHNICIAN' ? technicianDefault : u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&bg=334155&color=fff`)} 
+                              className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 object-cover" 
+                              alt={u.name} 
+                              onError={(e) => {
+                                if (u.role === 'TECHNICIAN') e.target.src = technicianDefault;
+                                else e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&bg=334155&color=fff`;
+                              }}
+                            />
+                            <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
+                              u.role === 'ADMIN' ? 'bg-rose-400' : u.role === 'TECHNICIAN' ? 'bg-emerald-400' : 'bg-blue-400'
+                            }`} />
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">{u.name}</p>
+                            <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {u.email}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Role */}
+                      <td className="px-6 py-5">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${badge.bg} ${badge.text} ${badge.ring}`}>
+                          <badge.icon className="w-3 h-3 mr-1.5" />
+                          {badge.label}
+                        </span>
+                      </td>
+
+                      {/* Student ID */}
+                      <td className="px-6 py-5">
+                        {u.studentId ? (
+                          <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Hash className="w-3.5 h-3.5 text-slate-400" />
+                            {u.studentId}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Not set</span>
+                        )}
+                      </td>
+
+                      {/* Faculty */}
+                      <td className="px-6 py-5">
+                        {u.faculty ? (
+                          <span className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                            {u.faculty}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Not set</span>
+                        )}
+                      </td>
+
+                      {/* Contact */}
+                      <td className="px-6 py-5">
+                        {u.contactNumber ? (
+                          <span className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5 text-slate-400" />
+                            {u.contactNumber}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic">Not set</span>
+                        )}
+                      </td>
+
+                      {/* Joined */}
+                      <td className="px-6 py-5">
+                        <div className="flex items-center space-x-1.5 text-sm text-slate-600 dark:text-slate-400">
+                          <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                          <span>
+                            {new Date(u.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Action */}
+                      <td className="px-8 py-5 text-right">
+                        <motion.div 
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="inline-flex p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 group-hover:text-primary group-hover:border-primary/50 group-hover:bg-primary/10 transition-all cursor-pointer"
+                        >
                           <ArrowUpRight className="w-4 h-4" />
-                       </div>
-                    </td>
-                  </motion.tr>
-                ))}
+                        </motion.div>
+                      </td>
+                    </motion.tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {/* Footer count */}
+      {!loading && filteredUsers.length > 0 && (
+        <div className="text-center">
+          <p className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">
+            Showing {filteredUsers.length} of {users.length} users
+          </p>
+        </div>
+      )}
     </div>
   );
 };
