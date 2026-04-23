@@ -69,14 +69,28 @@ export default function Profile() {
   const lastSeen = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
     + '  ·  ' + now.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
 
-  const infoRows = [
-    { label:'Student ID',   value: user?.studentId    || '—', icon: Hash,         color:'#3b82f6' },
-    { label:'Email',        value: user?.email        || '—', icon: Mail,         color:'#8b5cf6' },
-    { label:'Faculty',      value: user?.faculty      || '—', icon: Building2,    color:'#10b981' },
-    { label:'Batch / Year', value: user?.batch        || '—', icon: GraduationCap,color:'#f59e0b' },
-    { label:'Contact',      value: user?.contactNumber|| '—', icon: Phone,        color:'#06b6d4' },
-    { label:'Campus',       value: 'Main Campus',             icon: MapPin,       color:'#f43f5e' },
-  ];
+  const infoRows = (user?.role === 'ADMIN' ? [
+    { label:'Staff / Admin ID', value: user?.studentId    || '—', icon: Hash,         color:'#3b82f6' },
+    { label:'System Email',    value: user?.email        || '—', icon: Mail,         color:'#8b5cf6' },
+    { label:'Admin Department',value: user?.faculty      || '—', icon: Building2,    color:'#10b981' },
+    { label:'Access Level',    value: 'System Administrator',     icon: ShieldCheck, color:'#f59e0b' },
+    { label:'Contact Node',    value: user?.contactNumber|| '—', icon: Phone,        color:'#06b6d4' },
+    { label:'Campus',          value: 'Main Campus',             icon: MapPin,       color:'#f43f5e' },
+  ] : user?.role === 'TECHNICIAN' ? [
+    { label:'Technician ID',   value: user?.studentId    || '—', icon: Hash,         color:'#3b82f6' },
+    { label:'Official Email',  value: user?.email        || '—', icon: Mail,         color:'#8b5cf6' },
+    { label:'Department',      value: user?.faculty      || '—', icon: Building2,    color:'#10b981' },
+    { label:'Specialization',  value: user?.batch        || '—', icon: GraduationCap,color:'#f59e0b' },
+    { label:'Contact No',      value: user?.contactNumber|| '—', icon: Phone,        color:'#06b6d4' },
+    { label:'Campus',          value: 'Main Campus',             icon: MapPin,       color:'#f43f5e' },
+  ] : [
+    { label:'Student ID',      value: user?.studentId    || '—', icon: Hash,         color:'#3b82f6' },
+    { label:'Email Address',   value: user?.email        || '—', icon: Mail,         color:'#8b5cf6' },
+    { label:'Faculty',         value: user?.faculty      || '—', icon: Building2,    color:'#10b981' },
+    { label:'Batch / Year',    value: user?.batch        || '—', icon: GraduationCap,color:'#f59e0b' },
+    { label:'Contact Number',  value: user?.contactNumber|| '—', icon: Phone,        color:'#06b6d4' },
+    { label:'Campus Location', value: 'Main Campus',             icon: MapPin,       color:'#f43f5e' },
+  ]);
 
   const permissions = [
     { name:'Library 24/7',      icon: BookOpen,    clr:'text-emerald-400', bg:'bg-emerald-500/10', border:'border-emerald-500/20' },
@@ -429,10 +443,10 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
                     { label:'Full Name',      key:'name',          placeholder:'Your full name',  type:'text'  },
-                    { label:'Student ID',     key:'studentId',     placeholder:'IT2XXXXXXX',       type:'text'  },
+                    { label: user?.role === 'ADMIN' ? 'Staff ID' : user?.role === 'TECHNICIAN' ? 'Tech ID' : 'Student ID', key:'studentId', placeholder:'ID Number', type:'text' },
                     { label:'Email Address',  key:'email',         placeholder:'you@example.com',  type:'email' },
-                    { label:'Contact',        key:'contactNumber', placeholder:'+94 XX XXX XXXX',  type:'text'  },
-                    { label:'Batch / Year',   key:'batch',         placeholder:'2023',             type:'text'  },
+                    { label:'Contact No',     key:'contactNumber', placeholder:'+94 XX XXX XXXX',  type:'text'  },
+                    { label: user?.role === 'ADMIN' ? 'Tier / Level' : user?.role === 'TECHNICIAN' ? 'Specialization' : 'Batch / Year', key:'batch', placeholder:'Level', type:'text' },
                   ].map(f => (
                     <div key={f.key} className="space-y-1.5">
                       <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{f.label}</label>
@@ -445,14 +459,28 @@ export default function Profile() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Faculty</label>
+                  <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                    {user?.role === 'ADMIN' ? 'Administrative Department' : user?.role === 'TECHNICIAN' ? 'Department' : 'Faculty'}
+                  </label>
                   <select value={formData.faculty} onChange={e => setFormData({ ...formData, faculty: e.target.value })}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white outline-none focus:border-blue-500 transition-colors">
-                    <option value="">Select Faculty…</option>
-                    <option value="Computing">Faculty of Computing</option>
-                    <option value="Business">Business School</option>
-                    <option value="Engineering">Faculty of Engineering</option>
-                    <option value="Humanities">Humanities &amp; Sciences</option>
+                    <option value="">Select {user?.role === 'ADMIN' ? 'Department' : 'Faculty'}…</option>
+                    {user?.role === 'ADMIN' ? (
+                      <>
+                        <option value="IT Infrastructure">IT &amp; Infrastructure</option>
+                        <option value="Student Affairs">Student Affairs</option>
+                        <option value="Campus Operations">Campus Operations</option>
+                        <option value="Academic Registry">Academic Registry</option>
+                        <option value="Finance &amp; Admin">Finance &amp; Administration</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="Computing">Faculty of Computing</option>
+                        <option value="Business">Business School</option>
+                        <option value="Engineering">Faculty of Engineering</option>
+                        <option value="Humanities">Humanities &amp; Sciences</option>
+                      </>
+                    )}
                   </select>
                 </div>
 

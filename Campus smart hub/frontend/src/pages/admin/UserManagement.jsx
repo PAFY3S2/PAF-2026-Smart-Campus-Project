@@ -18,6 +18,8 @@ import {
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import technicianDefault from '../../assets/technician_default.png';
+import studentDefault from '../../assets/student_default.png';
+import adminDefault from '../../assets/admin_default.png';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -161,7 +163,7 @@ const UserManagement = () => {
                   <th className="px-8 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">User</th>
                   <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Role</th>
                   <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Student ID</th>
-                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Faculty</th>
+                  <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Department / Faculty</th>
                   <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Contact</th>
                   <th className="px-6 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em]">Joined</th>
                   <th className="px-8 py-5 font-bold text-[10px] text-slate-500 uppercase tracking-[.2em] text-right">View</th>
@@ -184,12 +186,13 @@ const UserManagement = () => {
                         <div className="flex items-center space-x-3">
                           <div className="relative">
                             <img 
-                              src={u.avatar && !u.avatar.includes('ui-avatars.com') ? u.avatar : (u.role === 'TECHNICIAN' ? technicianDefault : u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&bg=334155&color=fff`)} 
+                              src={u.avatar && !u.avatar.includes('ui-avatars.com') ? u.avatar : (u.role === 'TECHNICIAN' ? technicianDefault : u.role === 'ADMIN' ? adminDefault : studentDefault)} 
                               className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-700 object-cover" 
                               alt={u.name} 
                               onError={(e) => {
                                 if (u.role === 'TECHNICIAN') e.target.src = technicianDefault;
-                                else e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name)}&bg=334155&color=fff`;
+                                else if (u.role === 'ADMIN') e.target.src = adminDefault;
+                                else e.target.src = studentDefault;
                               }}
                             />
                             <div className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
@@ -226,7 +229,7 @@ const UserManagement = () => {
                         )}
                       </td>
 
-                      {/* Faculty */}
+                      {/* Department / Faculty */}
                       <td className="px-6 py-5">
                         {u.faculty ? (
                           <span className="text-sm text-slate-700 dark:text-slate-300 flex items-center gap-1.5">

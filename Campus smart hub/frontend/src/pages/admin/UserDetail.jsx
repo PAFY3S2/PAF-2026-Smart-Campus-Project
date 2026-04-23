@@ -26,6 +26,8 @@ import {
 import { motion } from 'framer-motion';
 import api from '../../services/api';
 import technicianDefault from '../../assets/technician_default.png';
+import studentDefault from '../../assets/student_default.png';
+import adminDefault from '../../assets/admin_default.png';
 
 const UserDetail = () => {
   const { id } = useParams();
@@ -141,12 +143,13 @@ const UserDetail = () => {
               {/* Avatar */}
               <div className="relative mb-5">
                 <img 
-                  src={userData.avatar && !userData.avatar.includes('ui-avatars.com') ? userData.avatar : (userData.role === 'TECHNICIAN' ? technicianDefault : userData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&bg=334155&color=fff&size=128`)} 
+                  src={userData.avatar && !userData.avatar.includes('ui-avatars.com') ? userData.avatar : (userData.role === 'TECHNICIAN' ? technicianDefault : userData.role === 'ADMIN' ? adminDefault : studentDefault)} 
                   className="w-28 h-28 rounded-2xl border-2 border-slate-200 dark:border-slate-700 object-cover shadow-lg" 
                   alt={userData.name} 
                   onError={(e) => {
                     if (userData.role === 'TECHNICIAN') e.target.src = technicianDefault;
-                    else e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.name)}&bg=334155&color=fff&size=128`;
+                    else if (userData.role === 'ADMIN') e.target.src = adminDefault;
+                    else e.target.src = studentDefault;
                   }}
                 />
                 <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-lg ${badge.bg} ${badge.ring} flex items-center justify-center`}>
@@ -182,13 +185,19 @@ const UserDetail = () => {
             </h3>
 
             <div className="space-y-4">
-              {[
-                { label: 'Student ID', value: userData.studentId, icon: Hash, color: 'text-blue-400' },
-                { label: 'Faculty', value: userData.faculty, icon: Building2, color: 'text-violet-400' },
-                { label: 'Batch', value: userData.batch, icon: Users, color: 'text-amber-400' },
-                { label: 'Contact', value: userData.contactNumber, icon: Phone, color: 'text-emerald-400' },
+              {(userData.role === 'ADMIN' ? [
+                { label: 'Staff / Admin ID', value: userData.studentId, icon: Hash, color: 'text-blue-400' },
+                { label: 'Administrative Department', value: userData.faculty, icon: Building2, color: 'text-violet-400' },
+                { label: 'Access Level', value: userData.role === 'ADMIN' ? 'Super Admin / System' : userData.batch, icon: Layers, color: 'text-amber-400' },
+                { label: 'Contact Node', value: userData.contactNumber, icon: Phone, color: 'text-emerald-400' },
+                { label: 'System Access Since', value: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : null, icon: CalendarDays, color: 'text-primary' },
+              ] : [
+                { label: userData.role === 'TECHNICIAN' ? 'Technician ID' : 'Student ID', value: userData.studentId, icon: Hash, color: 'text-blue-400' },
+                { label: userData.role === 'TECHNICIAN' ? 'Department' : 'Faculty', value: userData.faculty, icon: Building2, color: 'text-violet-400' },
+                { label: userData.role === 'TECHNICIAN' ? 'Specialization' : 'Batch', value: userData.batch, icon: Users, color: 'text-amber-400' },
+                { label: 'Contact Node', value: userData.contactNumber, icon: Phone, color: 'text-emerald-400' },
                 { label: 'Joined', value: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : null, icon: CalendarDays, color: 'text-primary' },
-              ].map((item, i) => (
+              ]).map((item, i) => (
                 <div key={i} className="flex items-center space-x-3 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-100 dark:border-slate-800/50">
                   <div className={`w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center ${item.color} shrink-0`}>
                     <item.icon className="w-4 h-4" />
