@@ -18,6 +18,8 @@ import Profile from '../pages/profile/Profile';
 import Home from '../pages/home/Home';
 import UserManagement from '../pages/admin/UserManagement.jsx';
 import UserDetail from '../pages/admin/UserDetail.jsx';
+import Announcements from '../pages/admin/Announcements.jsx';
+import Settings from '../pages/admin/Settings.jsx';
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
@@ -45,6 +47,8 @@ const AppRoutes = () => {
         <Route path="/admin/tickets" element={<ProtectedRoute allowedRoles={['ADMIN', 'TECHNICIAN']}><AdminTickets /></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['ADMIN']}><UserManagement /></ProtectedRoute>} />
         <Route path="/admin/users/:id" element={<ProtectedRoute allowedRoles={['ADMIN']}><UserDetail /></ProtectedRoute>} />
+        <Route path="/admin/announcements" element={<ProtectedRoute allowedRoles={['ADMIN']}><Announcements /></ProtectedRoute>} />
+        <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><Settings /></ProtectedRoute>} />
       </Route>
 
       <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
