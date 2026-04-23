@@ -88,21 +88,51 @@ router.put('/password', auth, checkRole(['TECHNICIAN']), async (req, res) => {
 // @route   POST /api/technician/profile-picture
 // @desc    Upload profile picture
 // @access  Private (Technician)
-router.post('/profile-picture', auth, checkRole(['TECHNICIAN']), upload.single('avatar'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Please upload a file' });
-    }
+// POST route to upload profile picture
+router.post(
+  '/profile-picture',
 
-    const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
-    const user = await User.findByIdAndUpdate(req.user.id, { avatar: avatarUrl }, { new: true }).select('-password');
-    
-    res.json({ avatarUrl, user });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+  auth, // Middleware: checks if user is authenticated (valid token)
+
+  checkRole(['TECHNICIAN']), // Middleware: allows only users with TECHNICIAN role
+
+  upload.single('avatar'), // Multer middleware: handles single file upload (field name = 'avatar')
+
+  async (req, res) => {
+    try {
+      // Check if a file was uploaded
+      if (!req.file) {
+        return res.status(400).json({ message: 'Please upload a file' });
+      }
+
+      // Build a public URL for the uploaded image
+      // req.protocol -> http or https
+      // req.get('host') -> domain + port (e.g., localhost:5000)
+      // req.file.filename -> name of uploaded file
+      const avatarUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
+      // Update the logged-in user's avatar in the database
+      const user = await User.findByIdAndUpdate(
+        req.user.id,                 // Get user ID from auth middleware
+        { avatar: avatarUrl },       // Update avatar field
+        { new: true }                // Return updated user document
+      ).select('-password');         // Exclude password from returned data (security)
+
+      // Send response back to frontend
+      res.json({
+        avatarUrl, // URL of uploaded image
+        user       // Updated user data
+      });
+
+    } catch (err) {
+      // Log error in server console
+      console.error(err.message);
+
+      // Send generic server error response
+      res.status(500).send('Server Error');
+    }
   }
-});
+);
 
 // @route   GET /api/technician/dashboard/stats
 // @desc    Get technician dashboard statistics

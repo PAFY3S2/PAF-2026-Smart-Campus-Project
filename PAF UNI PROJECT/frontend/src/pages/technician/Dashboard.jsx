@@ -184,80 +184,94 @@ const Dashboard = () => {
         <StatCard title="Priority Alerts" value={isStatsError ? '—' : stats?.priorityCount} icon={AlertCircle} color="rose" isLoading={isStatsLoading} />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
-          <div>
-            <h2 className="text-lg font-black text-[#142B5D] dark:text-white uppercase tracking-tighter">My Active Assignments</h2>
-            <p className="text-[10px] font-black text-[#F5AB24] uppercase tracking-widest mt-1">Institutional Technical Support Queue</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="relative group">
-              <input 
-                type="text" 
-                placeholder="Search ID, description or student..."
-                value={debouncedSearch}
-                onChange={(e) => setDebouncedSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-[#F5AB24] rounded-lg text-xs font-bold text-[#142B5D] dark:text-white transition-all w-64 outline-none"
-              />
-              <Ticket className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-[#F5AB24] transition-colors" />
+      {/* BLURRED BACKGROUND CONTAINER FOR TABLE OVERLAY */}
+      <div className="relative rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
+        {/* Background Image Layer */}
+        <div 
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/Wallpaper.jpg')" }}
+        />
+        {/* Glassmorphism Blur & Opacity Layer */}
+        <div className="absolute inset-0 z-0 bg-white/60 dark:bg-slate-900/70 backdrop-blur-xl" />
+
+        {/* Content Layer (Keeps content readable above background) */}
+        <div className="relative z-10 w-full h-full">
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 flex justify-between items-center bg-white/40 dark:bg-slate-800/40 backdrop-blur-md">
+            <div>
+              <h2 className="text-lg font-black text-[#142B5D] dark:text-white uppercase tracking-tighter">My Active Assignments</h2>
+              <p className="text-[10px] font-black text-[#F5AB24] uppercase tracking-widest mt-1">Institutional Technical Support Queue</p>
             </div>
+            <div className="flex items-center space-x-4">
+              <div className="relative group">
+                <input 
+                  type="text" 
+                  placeholder="Search ID, description or student..."
+                  value={debouncedSearch}
+                  onChange={(e) => setDebouncedSearch(e.target.value)}
+                  className="pl-10 pr-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-transparent focus:border-[#F5AB24] outline-none rounded-lg text-xs font-bold text-[#142B5D] dark:text-white transition-all w-64 shadow-sm placeholder:text-slate-500"
+                />
+                <Ticket className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 group-focus-within:text-[#F5AB24] transition-colors" />
+              </div>
 
-            <select 
-              value={filters.status}
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-[#F5AB24] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white outline-none"
-            >
-              <option value="">All Statuses</option>
-              <option value="OPEN">Open</option>
-              <option value="IN_PROGRESS">In Progress</option>
-            </select>
-
-            <select 
-              value={filters.priority}
-              onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
-              className="px-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-[#F5AB24] rounded-lg text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white outline-none"
-            >
-              <option value="">All Priorities</option>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="URGENT">Urgent</option>
-            </select>
-
-            {(filters.search || filters.status || filters.priority || filters.from || filters.to) && (
-              <button 
-                onClick={() => {
-                  setDebouncedSearch('');
-                  setFilters({ search: '', status: '', priority: '', from: '', to: '' });
-                }}
-                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+              <select 
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-transparent focus:border-[#F5AB24] outline-none rounded-lg text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white shadow-sm"
               >
-                Clear Filters
-              </button>
-            )}
+                <option value="">All Statuses</option>
+                <option value="OPEN">Open</option>
+                <option value="IN_PROGRESS">In Progress</option>
+              </select>
 
-            <button 
-              onClick={handleDownloadReport}
-              className="flex items-center space-x-2 px-4 py-2 bg-[#142B5D] text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#0D1E40] transition shadow-md"
-            >
-              <FileDown className="w-4 h-4" />
-              <span>Report</span>
-            </button>
-          </div>
-        </div>
-        <div className="relative">
-          {(isTicketsFetching && !isTicketsLoading) && (
-            <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
+              <select 
+                value={filters.priority}
+                onChange={(e) => setFilters(prev => ({ ...prev, priority: e.target.value }))}
+                className="px-4 py-2 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-transparent focus:border-[#F5AB24] outline-none rounded-lg text-[10px] font-black uppercase tracking-widest text-[#142B5D] dark:text-white shadow-sm"
+              >
+                <option value="">All Priorities</option>
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
+              </select>
+
+              {(filters.search || filters.status || filters.priority || filters.from || filters.to) && (
+                <button 
+                  onClick={() => {
+                    setDebouncedSearch('');
+                    setFilters({ search: '', status: '', priority: '', from: '', to: '' });
+                  }}
+                  className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest hover:underline drop-shadow-sm px-1"
+                >
+                  Clear Filters
+                </button>
+              )}
+
+              <button 
+                onClick={handleDownloadReport}
+                className="flex items-center space-x-2 px-4 py-2 bg-[#142B5D]/90 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-[#0D1E40] transition shadow-md"
+              >
+                <FileDown className="w-4 h-4" />
+                <span>Report</span>
+              </button>
             </div>
-          )}
-          <TicketTable 
-              tickets={tickets} 
-              onUpdateStatus={handleUpdateStatus} 
-              onAddNote={handleAddNoteRequest}
-              onComplete={handleCompleteRequest}
-              isLoading={isTicketsLoading}
-          />
+          </div>
+          <div className="relative">
+            {(isTicketsFetching && !isTicketsLoading) && (
+              <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-[2px] z-20 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-slate-200 border-t-[#F5AB24] rounded-full animate-spin"></div>
+              </div>
+            )}
+            <div className="bg-transparent">
+              <TicketTable 
+                  tickets={tickets} 
+                  onUpdateStatus={handleUpdateStatus} 
+                  onAddNote={handleAddNoteRequest}
+                  onComplete={handleCompleteRequest}
+                  isLoading={isTicketsLoading}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
