@@ -11,20 +11,28 @@ const AdminTickets = () => {
   const [loading, setLoading] = useState(true);
   const [activeTicket, setActiveTicket] = useState(null);
   const [newComment, setNewComment] = useState('');
+  const [error, setError] = useState(null);
 
-  const fetchData = async () => {
-    try {
-      const [ticketsRes, techsRes] = await Promise.all([
-        api.get('/tickets'),
-        api.get('/auth/technicians')
-      ]);
-      setTickets(ticketsRes.data.sort((a,b) => b.id - a.id));
-      setTechnicians(techsRes.data);
-      setLoading(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+const fetchData = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+
+    const [ticketsRes, techsRes] = await Promise.all([
+      api.get('/tickets'),
+      api.get('/auth/technicians')
+    ]);
+
+    setTickets(ticketsRes.data.sort((a, b) => b.id - a.id));
+    setTechnicians(techsRes.data);
+
+  } catch (err) {
+    console.error(err);
+    setError('Failed to load data');
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
@@ -77,27 +85,35 @@ const AdminTickets = () => {
           <h2 className="text-lg font-black text-[#142B5D] dark:text-white uppercase tracking-tighter">Tickets Map</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {loading ? (
-             <div className="p-4 text-center text-slate-500 text-sm">Loading...</div>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {tickets.map(ticket => (
-                <button
-                  key={ticket.id}
-                  onClick={() => setActiveTicket(ticket)}
-                  className={`w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-l-4 ${activeTicket?.id === ticket.id ? 'border-[#F5AB24] bg-indigo-50/30 dark:bg-[#F5AB24]/5' : 'border-transparent'}`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">TKT-{ticket.id}</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${ticket.priority === 'HIGH' || ticket.priority === 'URGENT' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{ticket.priority}</span>
-                  </div>
-                  <h4 className="font-black text-[#142B5D] dark:text-slate-200 text-sm line-clamp-1 mb-1 uppercase tracking-tight">{ticket.category} Issue</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-500 line-clamp-1 italic">{ticket.description}</p>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {error ? (
+          // 🔴 Show error FIRST if exists
+          <div className="p-4 text-center text-red-500 text-sm">
+            {error}
+          </div>
+        ) : loading ? (
+          // ⏳ Then loading
+          <div className="p-4 text-center text-slate-500 text-sm">
+            Loading...
+          </div>
+  ) : (
+    // ✅ Then actual ticket list
+    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      {tickets.map(ticket => (
+        <button
+          key={ticket.id}
+          onClick={() => setActiveTicket(ticket)}
+          className={`w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-l-4 ${
+            activeTicket?.id === ticket.id
+              ? 'border-[#F5AB24] bg-indigo-50/30 dark:bg-[#F5AB24]/5'
+              : 'border-transparent'
+          }`}
+        >
+          {/* your existing ticket UI */}
+        </button>
+      ))}
+    </div>
+  )}
+</div>
       </div>
 
       {/* Details Column */}
