@@ -14,41 +14,65 @@ export const useTickets = (type = 'active', params = {}) => {
   });
 };
 
+/**
+ * 🔹 Fetch a single ticket by ID
+ */
 export const useTicket = (id) => {
   return useQuery({
-    queryKey: ['ticket', id],
+    queryKey: ['ticket', id], // cache key
+
     queryFn: async () => {
-      const { data } = await api.get(`/tickets/${id}`);
+      const { data } = await api.get(`/tickets/${id}`); // GET single ticket
       return data;
     },
+
+    // Only run query if ID exists
     enabled: !!id,
   });
 };
 
+/**
+ *  Fetch comments for a ticket
+ */
 export const useComments = (ticketId) => {
   return useQuery({
     queryKey: ['comments', ticketId],
+
     queryFn: async () => {
       const { data } = await api.get(`/tickets/${ticketId}/comments`);
       return data;
     },
+
+    // Run only if ticketId exists
     enabled: !!ticketId,
   });
 };
 
+/**
+ * 🔹 Update ticket status (PATCH request)
+ */
 export const useUpdateTicketStatus = () => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); // access cache
+
   return useMutation({
+    // Function to update status in backend
     mutationFn: async ({ id, status }) => {
       const { data } = await api.patch(`/tickets/${id}/status`, { status });
       return data;
     },
+
+    // When update is successful
     onSuccess: (_, variables) => {
+      // Refresh related cached data
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+
+      // Show success message
       toast.success(`Ticket marked as ${variables.status.toLowerCase()}`);
     },
+
+    // If error happens
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Failed to update status');
     },

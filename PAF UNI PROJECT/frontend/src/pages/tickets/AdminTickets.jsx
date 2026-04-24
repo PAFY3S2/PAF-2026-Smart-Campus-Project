@@ -86,17 +86,17 @@ const fetchData = async () => {
         </div>
         <div className="flex-1 overflow-y-auto">
         {error ? (
-          // 🔴 Show error FIRST if exists
+          //  Show error FIRST if exists
           <div className="p-4 text-center text-red-500 text-sm">
             {error}
           </div>
         ) : loading ? (
-          // ⏳ Then loading
+          //  Then loading
           <div className="p-4 text-center text-slate-500 text-sm">
             Loading...
           </div>
   ) : (
-    // ✅ Then actual ticket list
+    //  Then actual ticket list
     <div className="divide-y divide-slate-100 dark:divide-slate-800">
       {tickets.map(ticket => (
         <button
