@@ -20,6 +20,9 @@ public class AdminUserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private com.project.service.NotificationService notificationService;
+
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
@@ -48,6 +51,10 @@ public class AdminUserController {
             User user = userOptional.get();
             user.setRole(request.getRole());
             userService.updateUser(user);
+            String title = request.getRole() == com.project.model.Role.TECHNICIAN ? "New Technician Assigned" : "User Role Updated";
+            notificationService.notifyAdmins(title, 
+                "User '" + user.getName() + "' is now assigned as " + request.getRole(), 
+                com.project.model.NotificationType.USER_DIRECTORY);
             return ResponseEntity.ok(user);
         }
         

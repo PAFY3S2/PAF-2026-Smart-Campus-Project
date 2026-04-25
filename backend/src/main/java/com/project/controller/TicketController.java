@@ -20,6 +20,9 @@ public class TicketController {
     @Autowired
     private TicketService ticketService;
 
+    @Autowired
+    private com.project.service.NotificationService notificationService;
+
     @GetMapping
     public List<Ticket> getAllTickets(@RequestParam(required = false) String userId, 
                                       @RequestParam(required = false) String technicianId) {
@@ -55,7 +58,11 @@ public class TicketController {
                 }
             }
             ticket.setImages(imagePaths);
-            return ResponseEntity.ok(ticketService.createTicket(ticket));
+            Ticket saved = ticketService.createTicket(ticket);
+            notificationService.notifyAdmins("New Incident Report", 
+                "A new ticket for category '" + saved.getCategory() + "' has been filed.", 
+                com.project.model.NotificationType.TICKET);
+            return ResponseEntity.ok(saved);
         } catch (java.lang.RuntimeException | java.io.IOException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -66,14 +73,22 @@ public class TicketController {
     public Ticket updateStatus(@PathVariable String id, @RequestBody Map<String, String> body) {
         TicketStatus status = TicketStatus.valueOf(body.get("status"));
         String notes = body.get("notes");
-        return ticketService.updateTicketStatus(id, status, notes);
+        Ticket updated = ticketService.updateTicketStatus(id, status, notes);
+        notificationService.notifyAdmins("Incident Status Updated", 
+            "Ticket #" + id + " status changed to " + status, 
+            com.project.model.NotificationType.TICKET_UPDATE);
+        return updated;
     }
 
     @PatchMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TECHNICIAN')")
     public Ticket assignTechnician(@PathVariable String id, @RequestBody Map<String, String> body) {
         String technicianId = body.get("technicianId");
-        return ticketService.assignTechnician(id, technicianId);
+        Ticket updated = ticketService.assignTechnician(id, technicianId);
+        notificationService.notifyAdmins("Technician Assigned", 
+            "A technician has been assigned to Incident #" + id, 
+            com.project.model.NotificationType.TICKET_UPDATE);
+        return updated;
     }
 
     @GetMapping("/{id}/evidence")
@@ -82,11 +97,15 @@ public class TicketController {
     }
 
     @PostMapping("/{id}/messages")
-    public Ticket addMessage(@PathVariable String id, @RequestBody Map<String, String> body, Authentication auth) {
+    public ResponseEntity<?> addMessage(@PathVariable String id, @RequestBody Map<String, String> body, Authentication auth) {
         String content = body.get("content");
         String senderType = body.getOrDefault("senderType", "user");
         String authorName = auth != null ? auth.getName() : "Unknown User";
-        return ticketService.addMessage(id, content, senderType, authorName);
+        Ticket response = ticketService.addMessage(id, content, senderType, authorName);
+        notificationService.notifyAdmins("Ticket Response Hub", 
+            "A new response has been added to Ticket #" + id, 
+            com.project.model.NotificationType.TICKET_UPDATE);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/notes")

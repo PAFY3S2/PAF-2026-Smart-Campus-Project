@@ -19,6 +19,9 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
 
+    @Autowired
+    private com.project.service.NotificationService notificationService;
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<Booking> getAllBookings() {
@@ -58,7 +61,11 @@ public class BookingController {
             }
             booking.setImages(imagePaths);
             
-            return ResponseEntity.ok(bookingService.createBooking(booking));
+            Booking saved = bookingService.createBooking(booking);
+            notificationService.notifyAdmins("New Reservation Request", 
+                "A new booking for " + (saved.getResourceId() != null ? saved.getResourceId() : "a resource") + " has been submitted.", 
+                com.project.model.NotificationType.BOOKING);
+            return ResponseEntity.ok(saved);
         } catch (java.lang.RuntimeException | java.io.IOException e) {
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -70,6 +77,12 @@ public class BookingController {
     public Booking updateStatus(@PathVariable String id, @RequestBody Map<String, String> body) {
         BookingStatus status = BookingStatus.valueOf(body.get("status"));
         String reason = body.get("reason");
-        return bookingService.updateBookingStatus(id, status, reason);
+        Booking updated = bookingService.updateBookingStatus(id, status, reason);
+        String action = status == com.project.model.BookingStatus.APPROVED ? "Approved" : 
+                        status == com.project.model.BookingStatus.REJECTED ? "Rejected" : "Updated";
+        notificationService.notifyAdmins("Reservation " + action, 
+            "Booking #" + id + " has been " + action.toLowerCase() + ".", 
+            com.project.model.NotificationType.BOOKING_UPDATE);
+        return updated;
     }
 }

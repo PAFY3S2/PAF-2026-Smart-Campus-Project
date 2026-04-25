@@ -17,7 +17,28 @@ public class NotificationService {
     private NotificationRepository notificationRepository;
 
     @Autowired
+    private com.project.repository.UserRepository userRepository;
+
+    @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    public void notifyAdmins(String title, String message, com.project.model.NotificationType type) {
+        List<com.project.model.User> admins = userRepository.findAll().stream()
+                .filter(u -> u.getRole() == com.project.model.Role.ADMIN)
+                .collect(java.util.stream.Collectors.toList());
+
+        for (com.project.model.User admin : admins) {
+            Notification notification = Notification.builder()
+                    .userId(admin.getId())
+                    .title(title)
+                    .message(message)
+                    .type(type)
+                    .isRead(false)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            createNotification(notification);
+        }
+    }
 
     public List<Notification> getUserNotifications(String userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);

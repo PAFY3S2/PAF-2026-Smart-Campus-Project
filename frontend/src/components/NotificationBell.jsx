@@ -67,9 +67,13 @@ const NotificationBell = ({ liveNotifications }) => {
 
   const IconType = ({ type }) => {
     switch (type) {
-      case 'BOOKING': return <span className="text-blue-500 bg-blue-100 p-1 rounded-md text-xs font-semibold">BOOKING</span>;
-      case 'TICKET': return <span className="text-orange-500 bg-orange-100 p-1 rounded-md text-xs font-semibold">TICKET</span>;
-      case 'COMMENT': return <span className="text-purple-500 bg-purple-100 p-1 rounded-md text-xs font-semibold">COMMENT</span>;
+      case 'BOOKING': return <span className="text-blue-500 bg-blue-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">RESERVATION</span>;
+      case 'BOOKING_UPDATE': return <span className="text-emerald-500 bg-emerald-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">BOOKING UPD</span>;
+      case 'TICKET': return <span className="text-orange-500 bg-orange-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">INCIDENT</span>;
+      case 'TICKET_UPDATE': return <span className="text-rose-500 bg-rose-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">TICKET UPD</span>;
+      case 'RESOURCE_OPS': return <span className="text-indigo-500 bg-indigo-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">RESOURCE OPS</span>;
+      case 'USER_DIRECTORY': return <span className="text-cyan-500 bg-cyan-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">USER DIRECTORY</span>;
+      case 'COMMENT': return <span className="text-purple-500 bg-purple-100 p-1 rounded-md text-[8px] font-black uppercase tracking-widest">COMMENT</span>;
       default: return <ShieldAlert size={16} className="text-gray-500" />;
     }
   };

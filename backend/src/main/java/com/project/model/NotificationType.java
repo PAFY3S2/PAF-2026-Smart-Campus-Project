@@ -5,5 +5,7 @@ public enum NotificationType {
     TICKET,
     COMMENT,
     BOOKING_UPDATE,
-    TICKET_UPDATE
+    TICKET_UPDATE,
+    RESOURCE_OPS,
+    USER_DIRECTORY
 }

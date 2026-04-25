@@ -3,8 +3,10 @@ package com.project.controller;
 import com.project.model.Resource;
 import com.project.model.ResourceStatus;
 import com.project.model.ResourceType;
+import com.project.model.NotificationType;
 import com.project.service.ResourceService;
 import com.project.service.FileStorageService;
+import com.project.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +23,12 @@ public class ResourceController {
 
     private final ResourceService resourceService;
     private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
-    public ResourceController(ResourceService resourceService, FileStorageService fileStorageService) {
+    public ResourceController(ResourceService resourceService, FileStorageService fileStorageService, NotificationService notificationService) {
         this.resourceService = resourceService;
         this.fileStorageService = fileStorageService;
+        this.notificationService = notificationService;
     }
 
     @GetMapping
@@ -52,7 +56,11 @@ public class ResourceController {
             String fileName = fileStorageService.storeFile(image);
             resource.setImageUrl("/uploads/" + fileName);
         }
-        return new ResponseEntity<>(resourceService.createOrUpdateResource(resource), HttpStatus.CREATED);
+        Resource saved = resourceService.createOrUpdateResource(resource);
+        notificationService.notifyAdmins("New Resource Created", 
+            "Resource '" + saved.getName() + "' has been added to the system.", 
+            NotificationType.RESOURCE_OPS);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/{id}", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
@@ -83,7 +91,11 @@ public class ResourceController {
             resourceDetails.setImageUrl(existing.getImageUrl());
         }
 
-        return ResponseEntity.ok(resourceService.updateResource(id, resourceDetails));
+        Resource updated = resourceService.updateResource(id, resourceDetails);
+        notificationService.notifyAdmins("Resource Updated", 
+            "Resource '" + updated.getName() + "' has been updated.", 
+            NotificationType.RESOURCE_OPS);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
@@ -97,6 +109,9 @@ public class ResourceController {
         }
         
         resourceService.deleteResource(id);
+        notificationService.notifyAdmins("Resource Deleted", 
+            "Resource '" + existing.getName() + "' has been removed.", 
+            NotificationType.RESOURCE_OPS);
         return ResponseEntity.noContent().build();
     }
 
@@ -108,6 +123,10 @@ public class ResourceController {
                 .orElseThrow(() -> new RuntimeException("Resource not found"));
         
         resource.setStatus(ResourceStatus.valueOf(statusStr.toUpperCase()));
-        return ResponseEntity.ok(resourceService.createOrUpdateResource(resource));
+        Resource updated = resourceService.createOrUpdateResource(resource);
+        notificationService.notifyAdmins("Resource Status Changed", 
+            "Resource '" + updated.getName() + "' status changed to " + statusStr, 
+            NotificationType.RESOURCE_OPS);
+        return ResponseEntity.ok(updated);
     }
 }
