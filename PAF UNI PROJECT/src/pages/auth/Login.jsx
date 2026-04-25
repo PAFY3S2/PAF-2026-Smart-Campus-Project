@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, ArrowRight, Loader2 } from 'lucide-react';
+import { Eye, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Button from '../../components/common/Button';
 
 const Login = () => {
   const { login } = useAuth();
@@ -135,13 +136,14 @@ const Login = () => {
                 </label>
               </div>
 
-              <button
+              <Button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-[#7c5cfa] hover:bg-[#694be0] text-white font-medium py-3.5 rounded-xl transition disabled:opacity-70 text-sm shadow-[0_4px_14px_0_rgba(124,92,250,0.39)] hover:shadow-[0_6px_20px_rgba(124,92,250,0.23)] flex justify-center items-center"
+                isLoading={loading}
+                fullWidth
+                className="bg-[#7c5cfa] hover:bg-[#694be0] text-white py-3.5 shadow-[0_4px_14px_0_rgba(124,92,250,0.39)] hover:shadow-[0_6px_20px_rgba(124,92,250,0.23)]"
               >
-                {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing...</> : 'Create account'}
-              </button>
+                Create account
+              </Button>
             </form>
 
             <div className="mt-8 relative flex items-center justify-center">

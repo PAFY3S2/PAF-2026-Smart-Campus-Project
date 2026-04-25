@@ -1,5 +1,6 @@
 import React from 'react';
-import { Upload, X, Save, Loader2 } from 'lucide-react';
+import { Upload, X, Save } from 'lucide-react';
+import Button from '../common/Button';
 
 const ResourceForm = ({
   formData,
@@ -264,25 +265,21 @@ const ResourceForm = ({
         </div>
 
         <div className="pt-4 flex justify-end items-center border-t border-slate-100 dark:border-slate-800 mt-6 pt-6">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={onCancel}
-            className="mr-3 px-6 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="mr-3"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            disabled={isSubmitting || !isFormValid}
-            className="px-6 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition flex items-center shadow-sm"
+            disabled={!isFormValid}
+            isLoading={isSubmitting}
           >
-            {isSubmitting ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
+            {!isSubmitting && <Save className="w-4 h-4 mr-2" />}
             {isSubmitting ? 'Saving...' : isEditMode ? 'Update Resource' : 'Save Resource'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

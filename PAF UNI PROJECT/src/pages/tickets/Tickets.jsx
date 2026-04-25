@@ -3,7 +3,8 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { UploadCloud, Loader2 } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
+import Button from '../../components/common/Button';
 
 const Tickets = () => {
   const { user } = useAuth();
@@ -159,13 +160,14 @@ const Tickets = () => {
             )}
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-4 rounded-lg transition disabled:opacity-70 flex justify-center items-center"
+            isLoading={loading}
+            fullWidth
+            size="lg"
           >
-            {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Submitting Ticket...</> : 'Submit Incident Ticket'}
-          </button>
+            {loading ? 'Submitting Ticket...' : 'Submit Incident Ticket'}
+          </Button>
         </form>
       </div>
     </div>

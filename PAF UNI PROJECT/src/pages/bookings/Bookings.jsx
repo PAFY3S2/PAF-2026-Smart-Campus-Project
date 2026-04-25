@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Loader2 } from 'lucide-react';
+import Button from '../../components/common/Button';
 
 const Bookings = () => {
   const { user } = useAuth();
@@ -148,13 +148,14 @@ const Bookings = () => {
             {formik.touched.purpose && formik.errors.purpose ? <div className="text-xs text-rose-500">{formik.errors.purpose}</div> : null}
           </div>
 
-          <button
+          <Button
             type="submit"
-            disabled={loading}
-            className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-4 rounded-lg transition disabled:opacity-70 flex justify-center items-center"
+            isLoading={loading}
+            fullWidth
+            size="lg"
           >
-            {loading ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Submitting...</> : 'Submit Booking Request'}
-          </button>
+            {loading ? 'Submitting...' : 'Submit Booking Request'}
+          </Button>
         </form>
       </div>
     </div>
