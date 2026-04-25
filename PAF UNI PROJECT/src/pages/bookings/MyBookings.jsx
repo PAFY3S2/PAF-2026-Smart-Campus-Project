@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import Loader from '../../components/common/Loader';
+import EmptyState from '../../components/common/EmptyState';
+import { Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MyBookings = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +35,14 @@ const MyBookings = () => {
         {loading ? (
           <Loader message="Loading bookings..." />
         ) : bookings.length === 0 ? (
-          <div className="p-8 text-center text-slate-500">You have no bookings yet.</div>
+          <EmptyState 
+            icon={Calendar}
+            title="No Bookings Yet"
+            message="You haven't made any resource bookings. Find an available resource to get started."
+            actionLabel="Book a Resource"
+            onAction={() => navigate('/resources')}
+            containerClassName="py-16 flex flex-col items-center justify-center text-center text-slate-500 bg-white"
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">

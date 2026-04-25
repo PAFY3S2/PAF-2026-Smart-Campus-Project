@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Inbox } from 'lucide-react';
 import Loader from '../../components/common/Loader';
+import EmptyState from '../../components/common/EmptyState';
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -40,9 +41,11 @@ const MyTickets = () => {
       {loading ? (
         <Loader message="Loading tickets..." />
       ) : tickets.length === 0 ? (
-        <div className="p-8 text-center text-slate-500 bg-white rounded-xl shadow-sm border border-slate-200">
-          You have not submitted any tickets.
-        </div>
+        <EmptyState 
+          icon={Inbox}
+          title="No Tickets Found"
+          message="You have not submitted any incident tickets yet."
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {tickets.map(ticket => (

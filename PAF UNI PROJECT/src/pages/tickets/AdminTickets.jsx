@@ -3,6 +3,8 @@ import api from '../../services/api';
 import { MessageSquare, Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Loader from '../../components/common/Loader';
+import EmptyState from '../../components/common/EmptyState';
+import { Inbox, MousePointer2 } from 'lucide-react';
 
 const AdminTickets = () => {
   const { user } = useAuth();
@@ -59,6 +61,13 @@ const AdminTickets = () => {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
              <Loader message="Loading tickets..." fullScreen={false} />
+          ) : tickets.length === 0 ? (
+             <EmptyState
+                icon={Inbox}
+                title="No Tickets"
+                message="No tickets have been submitted yet."
+                containerClassName="p-8 flex flex-col items-center justify-center text-center text-slate-500 h-full"
+             />
           ) : (
             <div className="divide-y divide-slate-100">
               {tickets.map(ticket => (
@@ -177,9 +186,12 @@ const AdminTickets = () => {
           </div>
         </div>
       ) : (
-        <div className="hidden lg:flex flex-1 items-center justify-center bg-slate-50 rounded-xl border border-slate-200 border-dashed text-slate-400">
-          Select a ticket to view details
-        </div>
+        <EmptyState
+          icon={MousePointer2}
+          title="Select a Ticket"
+          message="Choose a ticket from the list to view its details and respond."
+          containerClassName="hidden lg:flex flex-col flex-1 items-center justify-center bg-slate-50 rounded-xl border border-slate-200 border-dashed text-slate-400"
+        />
       )}
     </div>
   );

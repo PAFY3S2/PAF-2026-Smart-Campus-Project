@@ -6,6 +6,7 @@ import resourceService from '../../services/resourceService';
 import Toast from '../../components/common/Toast';
 import { resolveImage } from '../../utils/imageUtils';
 import Loader from '../../components/common/Loader';
+import EmptyState from '../../components/common/EmptyState';
 
 const Resources = () => {
   const { user } = useAuth();
@@ -415,27 +416,23 @@ const Resources = () => {
         })}
         
         {!isLoading && !error && resources.length === 0 && (
-          <div className="col-span-full py-20 flex flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-             <div className="bg-slate-100 dark:bg-slate-800 rounded-full p-6 mb-4">
-               <Building className="w-12 h-12 text-slate-300 dark:text-slate-600" />
-             </div>
-             <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">No Resources Found</h3>
-             <p className="max-w-md">There are currently no active resources provisioned on the server network. Wait for an administrator to map new layouts.</p>
-             {isAdmin && (
-                <button onClick={(e) => {e.stopPropagation(); navigate('/resources/add');}} className="mt-6 px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all shadow-md font-medium">Provision System</button>
-             )}
-          </div>
+          <EmptyState 
+            icon={Building}
+            title="No Resources Found"
+            message="There are currently no active resources provisioned on the server network. Wait for an administrator to map new layouts."
+            actionLabel={isAdmin ? "Provision System" : undefined}
+            onAction={isAdmin ? () => navigate('/resources/add') : undefined}
+          />
         )}
 
         {filteredResources.length === 0 && resources.length > 0 && (
-          <div className="col-span-full py-16 flex flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-             <div className="bg-slate-100 dark:bg-slate-800 rounded-full p-4 mb-4">
-               <Filter className="w-8 h-8 text-slate-400 dark:text-slate-500" />
-             </div>
-             <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">No Matching Results</h3>
-             <p>Try modifying your current filter combinations or lowering capacity constraints.</p>
-             <button onClick={() => {setSearchTerm(''); setFilterType('ALL'); setFilterStatus('ALL'); setFilterLocation('ALL'); setMinCapacity('');}} className="mt-5 px-5 py-2 text-primary bg-primary/10 hover:bg-primary/20 rounded-lg transition font-medium">Clear All Filters</button>
-          </div>
+          <EmptyState 
+            icon={Filter}
+            title="No Matching Results"
+            message="Try modifying your current filter combinations or lowering capacity constraints."
+            actionLabel="Clear All Filters"
+            onAction={() => {setSearchTerm(''); setFilterType('ALL'); setFilterStatus('ALL'); setFilterLocation('ALL'); setMinCapacity('');}}
+          />
         )}
       </div>
 

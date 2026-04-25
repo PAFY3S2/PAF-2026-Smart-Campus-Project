@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { CheckCircle, XCircle } from 'lucide-react';
 import Loader from '../../components/common/Loader';
+import EmptyState from '../../components/common/EmptyState';
+import { Calendar } from 'lucide-react';
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -35,7 +37,12 @@ const AdminBookings = () => {
         {loading ? (
           <Loader message="Loading bookings..." />
         ) : bookings.length === 0 ? (
-          <div className="p-8 text-center text-slate-500 dark:text-slate-400">No bookings found.</div>
+          <EmptyState 
+            icon={Calendar}
+            title="No Bookings Found"
+            message="There are currently no bookings in the system."
+            containerClassName="py-16 flex flex-col items-center justify-center text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900"
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
