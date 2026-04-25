@@ -56,7 +56,18 @@ public class TicketService {
     public Ticket createTicket(Ticket ticket) {
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+        
+        // Notify student of submission
+        Notification notification = Notification.builder()
+                .userId(saved.getUserId())
+                .title("Ticket Created")
+                .message("Your incident report for " + saved.getCategory() + " has been logged. Technical staff will review it shortly.")
+                .type(NotificationType.TICKET)
+                .build();
+        notificationService.createNotification(notification);
+        
+        return saved;
     }
 
     public Ticket updateTicketStatus(String id, TicketStatus status, String notes) {

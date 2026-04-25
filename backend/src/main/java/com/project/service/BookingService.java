@@ -34,7 +34,18 @@ public class BookingService {
         if (hasConflict(booking)) {
             throw new RuntimeException("Overlapping booking exists for this resource at the requested time.");
         }
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+        
+        // Notify student of submission
+        Notification notification = Notification.builder()
+                .userId(saved.getUserId())
+                .title("Booking Submitted")
+                .message("Your booking request for " + saved.getDate() + " has been received and is awaiting review.")
+                .type(NotificationType.BOOKING)
+                .build();
+        notificationService.createNotification(notification);
+        
+        return saved;
     }
 
     public boolean hasConflict(Booking newBooking) {

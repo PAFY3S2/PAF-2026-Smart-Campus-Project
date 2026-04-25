@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../../services/api';
@@ -6,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/shared/PageHeader';
 
 const Bookings = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,10 @@ const Bookings = () => {
         await api.post('/bookings', { ...values, userId: user.id });
         setSuccess(true);
         resetForm();
-        setTimeout(() => setSuccess(false), 3000);
+        setTimeout(() => {
+          setSuccess(false);
+          navigate('/my-bookings');
+        }, 1500);
       } catch (err) {
         console.error(err);
         setError(err.response?.data?.message || 'Failed to submit booking request. Please try again.');

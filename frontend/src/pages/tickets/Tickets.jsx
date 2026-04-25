@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../../services/api';
@@ -7,6 +8,7 @@ import { UploadCloud } from 'lucide-react';
 import PageHeader from '../../components/shared/PageHeader';
 
 const Tickets = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,10 @@ const Tickets = () => {
         setSuccess(true);
         resetForm();
         setImages([]);
-        setTimeout(() => setSuccess(false), 3000);
+        setTimeout(() => {
+          setSuccess(false);
+          navigate('/my-tickets');
+        }, 1500);
       } catch (err) {
         console.error(err);
       } finally {
