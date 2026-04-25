@@ -14,6 +14,7 @@ const Tickets = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [images, setImages] = useState([]);
+  const [rawFiles, setRawFiles] = useState([]);
 
   useEffect(() => {
     api.get('/resources').then(res => setResources(res.data));
@@ -22,6 +23,8 @@ const Tickets = () => {
   const handleImageChange = (e) => {
     if (e.target.files) {
       const files = Array.from(e.target.files).slice(0, 3);
+      setRawFiles(prev => [...prev, ...files].slice(0, 3));
+      
       const imageUrls = files.map(file => URL.createObjectURL(file));
       setImages(prev => [...prev, ...imageUrls].slice(0, 3));
     }
@@ -43,10 +46,23 @@ const Tickets = () => {
     onSubmit: async (values, { resetForm }) => {
       setLoading(true);
       try {
-        await api.post('/tickets', { ...values, userId: user.id, images });
+        const formData = new FormData();
+        const ticketData = { ...values, userId: user.id };
+        
+        formData.append('ticket', new Blob([JSON.stringify(ticketData)], { type: "application/json" }));
+        
+        if (rawFiles.length > 0) {
+          rawFiles.forEach(file => {
+            formData.append('images', file);
+          });
+        }
+
+        await api.post('/tickets', formData);
+        
         setSuccess(true);
         resetForm();
         setImages([]);
+        setRawFiles([]);
         setTimeout(() => {
           setSuccess(false);
           navigate('/my-tickets');

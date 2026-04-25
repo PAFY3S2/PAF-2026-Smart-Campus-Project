@@ -4,6 +4,7 @@ import { MessageSquare, Save, Filter, MapPin, AlertCircle, Clock, CheckCircle } 
 import { useAuth } from '../../context/AuthContext';
 import { useLocation } from 'react-router-dom';
 import PageHeader from '../../components/shared/PageHeader';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const TechnicianTickets = ({ initialFilter = 'ALL' }) => {
   const { user } = useAuth();
@@ -302,7 +303,7 @@ const TechnicianTickets = ({ initialFilter = 'ALL' }) => {
                   <div className="flex flex-wrap gap-4">
                     {activeTicket.images.slice(0, 3).map((img, i) => (
                       <div key={i} className="group relative w-32 h-32 rounded-xl overflow-hidden border-2 border-slate-100 shadow-sm transition-all hover:border-[#F5AB24]">
-                        <img src={img} alt="Evidence" className="w-full h-full object-cover" />
+                        <img src={getImageUrl(img)} alt="Evidence" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                             <span className="text-white text-[10px] font-black uppercase tracking-widest">Preview</span>
                         </div>

@@ -35,9 +35,31 @@ public class TicketController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public Ticket createTicket(@RequestBody Ticket ticket) {
-        return ticketService.createTicket(ticket);
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<?> createTicket(
+            @RequestPart(value = "ticket") Ticket ticket,
+            @RequestPart(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images) {
+        try {
+            java.util.List<String> imagePaths = new java.util.ArrayList<>();
+            if (images != null && images.length > 0) {
+                String uploadDirStr = "uploads/";
+                java.io.File uploadDir = new java.io.File(uploadDirStr);
+                if (!uploadDir.exists()) uploadDir.mkdirs();
+                
+                for (org.springframework.web.multipart.MultipartFile file : images) {
+                    if (file.isEmpty()) continue;
+                    String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("[^a-zA-Z0-9.-]", "_");
+                    java.nio.file.Path path = java.nio.file.Paths.get(uploadDirStr + filename);
+                    java.nio.file.Files.write(path, file.getBytes());
+                    imagePaths.add("/uploads/" + filename);
+                }
+            }
+            ticket.setImages(imagePaths);
+            return ResponseEntity.ok(ticketService.createTicket(ticket));
+        } catch (java.lang.RuntimeException | java.io.IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
     @PatchMapping("/{id}/status")

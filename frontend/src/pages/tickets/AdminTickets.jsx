@@ -4,6 +4,7 @@ import { MessageSquare, Save, Ticket, AlertCircle, Clock, CheckCircle, User, Shi
 import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/shared/PageHeader';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const AdminTickets = () => {
   const { user } = useAuth();
@@ -180,12 +181,12 @@ const AdminTickets = () => {
                       <div className="flex items-center gap-6 pt-1">
                         <div className="flex items-center gap-2">
                            <User size={12} className="text-blue-500/50" />
-                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Origin: {activeTicket.userId?.toString().slice(-12)}</span>
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Origin: {activeTicket.userId?.toString()?.slice(-12) || 'UNKNOWN'}</span>
                         </div>
                         <div className="w-1.5 h-1.5 rounded-full bg-slate-800"></div>
                         <div className="flex items-center gap-2">
                            <Database size={12} className="text-purple-500/50" />
-                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resource: {activeTicket.resourceId?.toString().slice(-12)}</span>
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resource: {activeTicket.resourceId?.toString()?.slice(-12) || 'UNKNOWN'}</span>
                         </div>
                       </div>
                     </div>
@@ -249,7 +250,7 @@ const AdminTickets = () => {
                               key={i} 
                               className="w-36 h-36 rounded-2xl border-2 border-slate-700/50 overflow-hidden shadow-2xl bg-slate-900 cursor-zoom-in relative group"
                             >
-                              <img src={img} alt="Evidence" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                              <img src={getImageUrl(img)} alt="Evidence" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             </motion.div>
                           ))

@@ -9,9 +9,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String uploadPath = "D:/MyGit/PAF main/backend/uploads/";
+        String userDir = System.getProperty("user.dir");
+        String uploadPath = "file:" + userDir + "/uploads/";
 
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:///" + uploadPath);
+                .addResourceLocations(uploadPath);
     }
 }

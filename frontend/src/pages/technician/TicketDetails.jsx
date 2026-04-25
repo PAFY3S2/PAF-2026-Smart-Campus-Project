@@ -11,8 +11,11 @@ import {
   Shield, 
   UserCircle, 
   Send,
-  MessageSquare
+  MessageSquare,
+  ShieldCheck
 } from 'lucide-react';
+import clsx from 'clsx';
+import { getImageUrl } from '../../utils/imageUtils';
 import StatusBadge from '../../components/technician/StatusBadge';
 import api from '../../services/api';
 
@@ -145,10 +148,10 @@ const TicketDetails = () => {
                    )}>
                      {img ? (
                        <img 
-                         src={img} 
+                         src={getImageUrl(img)} 
                          alt={`Evidence ${idx + 1}`} 
                          className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                         onClick={() => window.open(img, '_blank')}
+                         onClick={() => window.open(getImageUrl(img), '_blank')}
                        />
                      ) : (
                        <div className="text-center p-4">
