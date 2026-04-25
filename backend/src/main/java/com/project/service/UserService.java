@@ -19,14 +19,18 @@ public class UserService {
     }
 
     public Optional<User> getUserById(String id) {
+        if (id == null) return Optional.empty();
         return userRepository.findById(id);
     }
     
     public User updateUser(User user) {
+        if (user == null) throw new IllegalArgumentException("User cannot be null");
         return userRepository.save(user);
     }
 
+    @SuppressWarnings("unchecked")
     public User updateProfile(String id, java.util.Map<String, Object> updates) {
+        if (id == null) throw new IllegalArgumentException("ID cannot be null");
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -46,7 +50,7 @@ public class UserService {
         if (updates.containsKey("workLocations")) {
             user.setWorkLocations((java.util.List<String>) updates.get("workLocations"));
         }
-
+        if (user == null) throw new RuntimeException("Unexpected null user");
         return userRepository.save(user);
     }
 }
