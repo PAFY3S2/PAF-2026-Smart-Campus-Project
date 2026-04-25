@@ -10,13 +10,17 @@ const ResourceDetails = () => {
   const navigate = useNavigate();
   const [resource, setResource] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchResource = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const { data } = await resourceApi.getResourceById(id);
-      setResource(data);
+      setResource(data || null);
     } catch (err) {
+      console.error('Failed to fetch resource:', err);
+      setError('Unable to establish connection with the central database.');
       toast.error('Strategic fail: Unable to load asset profile');
     } finally {
       setIsLoading(false);
@@ -41,6 +45,25 @@ const ResourceDetails = () => {
       <div className="flex flex-col items-center justify-center py-32">
         <div className="w-12 h-12 border-4 border-[#F5AB24] border-t-[#142B5D] rounded-full animate-spin mb-4"></div>
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Retrieving Asset Dossier...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-8 bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-sm max-w-2xl mx-auto mt-10 text-center">
+        <div className="w-20 h-20 bg-rose-50 dark:bg-rose-900/20 rounded-full flex items-center justify-center mb-8 text-rose-500">
+          <AlertTriangle className="w-10 h-10" />
+        </div>
+        <h3 className="text-2xl font-black text-[#142B5D] dark:text-white uppercase tracking-tighter mb-2">System Sync Failure</h3>
+        <p className="text-sm font-medium text-slate-400 mb-10 max-w-sm">{error}</p>
+        <button 
+          onClick={fetchResource} 
+          className="px-8 py-3 bg-[#142B5D] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0D1E40] transition shadow-lg flex items-center justify-center mx-auto space-x-2"
+        >
+          <RefreshCcw className="w-4 h-4" />
+          <span>Reboot Connection</span>
+        </button>
       </div>
     );
   }
