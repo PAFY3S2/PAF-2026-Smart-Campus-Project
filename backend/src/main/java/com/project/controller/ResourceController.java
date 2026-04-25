@@ -46,11 +46,11 @@ public class ResourceController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Resource> createResource(
             @ModelAttribute Resource resource,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @RequestParam(value = "image", required = false) MultipartFile image
     ) {
         if (image != null && !image.isEmpty()) {
-            String imageUrl = fileStorageService.storeFile(image);
-            resource.setImageUrl(imageUrl);
+            String fileName = fileStorageService.storeFile(image);
+            resource.setImageUrl("/uploads/" + fileName);
         }
         return new ResponseEntity<>(resourceService.createOrUpdateResource(resource), HttpStatus.CREATED);
     }
@@ -60,7 +60,7 @@ public class ResourceController {
     public ResponseEntity<Resource> updateResource(
             @PathVariable String id,
             @ModelAttribute Resource resourceDetails,
-            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "image", required = false) MultipartFile image,
             @RequestParam(value = "removeImage", defaultValue = "false") boolean removeImage
     ) {
         Resource existing = resourceService.getResourceById(id)
@@ -77,8 +77,8 @@ public class ResourceController {
             if (existing.getImageUrl() != null) {
                 fileStorageService.deleteFile(existing.getImageUrl());
             }
-            String imageUrl = fileStorageService.storeFile(image);
-            resourceDetails.setImageUrl(imageUrl);
+            String fileName = fileStorageService.storeFile(image);
+            resourceDetails.setImageUrl("/uploads/" + fileName);
         } else {
             resourceDetails.setImageUrl(existing.getImageUrl());
         }

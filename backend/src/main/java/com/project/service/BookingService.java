@@ -93,7 +93,7 @@ public class BookingService {
                 .orElseThrow(() -> new RuntimeException("Booking not found"));
         
         booking.setStatus(status);
-        if (reason != null) booking.setRejectionReason(reason);
+        if (reason != null) booking.setStatusReason(reason);
         
         Booking saved = bookingRepository.save(booking);
 

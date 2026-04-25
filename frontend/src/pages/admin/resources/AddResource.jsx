@@ -123,23 +123,7 @@ const AddResource = () => {
     try {
       const payload = buildFormDataPayload(formData);
       
-      console.log('[DEBUG] AddResource: Form Data Image before save:', formData.image);
-      if (formData.image) {
-        try {
-          const base64Image = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(formData.image);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-          });
-          console.log('[DEBUG] AddResource: Successfully converted image to base64. Length:', base64Image.length);
-          payload.append('imageUrl', base64Image);
-        } catch (error) {
-          console.error('[DEBUG] AddResource: Image conversion error:', error);
-        }
-      } else {
-        console.log('[DEBUG] AddResource: No image selected to convert.');
-      }
+      // The actual image file is already appended as 'image' in buildFormDataPayload
 
       await resourceApi.createResource(payload);
       toast.success('Asset integrated into institutional network');

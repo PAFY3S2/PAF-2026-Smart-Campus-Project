@@ -38,7 +38,7 @@ public class Booking {
     @Builder.Default
     private BookingStatus status = BookingStatus.PENDING;
     
-    private String rejectionReason;
+    private String statusReason;
 
     private List<String> images;
 

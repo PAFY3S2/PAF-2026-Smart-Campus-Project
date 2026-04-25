@@ -86,9 +86,13 @@ const MyBookings = () => {
                       <span className={`px-2.5 py-1 rounded font-black text-[9px] uppercase tracking-widest ${getStatusColor(booking.status)}`}>
                         {booking.status}
                       </span>
-                      {booking.status === 'REJECTED' && booking.rejectionReason && (
-                        <div className="text-[10px] text-rose-500 mt-2 font-bold uppercase tracking-tight">
-                          Note: {booking.rejectionReason}
+                      {booking.statusReason && (
+                        <div className={`text-[10px] mt-2 font-bold uppercase tracking-tight ${
+                          booking.status === 'REJECTED' ? 'text-rose-500' : 
+                          booking.status === 'APPROVED' ? 'text-emerald-500' : 
+                          'text-slate-400'
+                        }`}>
+                          Note: {booking.statusReason}
                         </div>
                       )}
                     </td>

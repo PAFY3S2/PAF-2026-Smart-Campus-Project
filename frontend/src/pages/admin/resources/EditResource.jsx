@@ -151,23 +151,7 @@ const EditResource = () => {
         }
       });
 
-      console.log('[DEBUG] EditResource: Form Data Image before save:', formData.image);
-      if (formData.image) {
-        try {
-          const base64Image = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(formData.image);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-          });
-          console.log('[DEBUG] EditResource: Successfully converted image to base64. Length:', base64Image.length);
-          payload.append('imageUrl', base64Image);
-        } catch (error) {
-          console.error('[DEBUG] EditResource: Image conversion error:', error);
-        }
-      } else {
-        console.log('[DEBUG] EditResource: No image selected to convert.');
-      }
+      // The actual image file is already appended as 'image' if it exists
 
       if (deleteImageFlag) {
         payload.append('removeImage', 'true');

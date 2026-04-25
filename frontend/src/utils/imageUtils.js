@@ -5,12 +5,15 @@ export const getImageUrl = (path) => {
   if (path.startsWith('http')) return path;
   if (path.startsWith('blob:')) return path; // Handle browser previews
   
-  // Prepend backend URL if it's a relative path starting with /uploads
-  if (path.startsWith('/uploads')) {
-    return `${BASE_URL}${path}`;
+  // Normalize the path: remove leading slash if present for easier prepending
+  let cleanPath = path.startsWith('/') ? path : `/${path}`;
+  
+  // If it doesn't already start with /uploads/, prepend it
+  if (!cleanPath.startsWith('/uploads/')) {
+    cleanPath = `/uploads${cleanPath}`;
   }
   
-  return path;
+  return `${BASE_URL}${cleanPath}`;
 };
 
 export const resolveImage = getImageUrl;
