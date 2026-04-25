@@ -37,11 +37,32 @@ public class BookingController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<?> createBooking(@RequestBody Booking booking) {
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<?> createBooking(
+            @RequestPart(value = "booking") String bookingStr,
+            @RequestPart(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images) {
         try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            Booking booking = mapper.readValue(bookingStr, Booking.class);
+
+            java.util.List<String> imagePaths = new java.util.ArrayList<>();
+            if (images != null && images.length > 0) {
+                String uploadDirStr = "D:/MyGit/PAF main/backend/uploads/";
+                java.io.File uploadDir = new java.io.File(uploadDirStr);
+                if (!uploadDir.exists()) uploadDir.mkdirs();
+                
+                for (org.springframework.web.multipart.MultipartFile file : images) {
+                    if (file.isEmpty()) continue;
+                    String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename().replaceAll("[^a-zA-Z0-9.-]", "_");
+                    java.nio.file.Path path = java.nio.file.Paths.get(uploadDirStr + filename);
+                    java.nio.file.Files.write(path, file.getBytes());
+                    imagePaths.add("/uploads/" + filename);
+                }
+            }
+            booking.setImages(imagePaths);
+            
             return ResponseEntity.ok(bookingService.createBooking(booking));
-        } catch (RuntimeException e) {
+        } catch (java.lang.RuntimeException | java.io.IOException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
