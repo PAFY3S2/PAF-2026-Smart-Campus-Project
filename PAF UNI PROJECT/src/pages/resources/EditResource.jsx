@@ -5,6 +5,7 @@ import resourceService from '../../services/resourceService';
 import ResourceForm from '../../components/resources/ResourceForm';
 import Toast from '../../components/common/Toast';
 import { resolveImage } from '../../utils/imageUtils';
+import Loader from '../../components/common/Loader';
 
 const EditResource = () => {
   const { id } = useParams();
@@ -171,11 +172,7 @@ const EditResource = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-      </div>
-    );
+    return <Loader message="Loading resource details..." />;
   }
 
   return (

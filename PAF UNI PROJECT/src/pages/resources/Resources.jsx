@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import resourceService from '../../services/resourceService';
 import Toast from '../../components/common/Toast';
 import { resolveImage } from '../../utils/imageUtils';
+import Loader from '../../components/common/Loader';
 
 const Resources = () => {
   const { user } = useAuth();
@@ -141,13 +142,7 @@ const Resources = () => {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32">
-        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
-        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Loading Resources</h3>
-        <p className="text-slate-500 font-medium">Fetching facility details securely...</p>
-      </div>
-    );
+    return <Loader message="Fetching facility details securely..." />;
   }
 
   if (error) {

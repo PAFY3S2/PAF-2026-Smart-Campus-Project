@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import Loader from '../../components/common/Loader';
 
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -28,7 +29,7 @@ const MyBookings = () => {
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-slate-500">Loading bookings...</div>
+          <Loader message="Loading bookings..." />
         ) : bookings.length === 0 ? (
           <div className="p-8 text-center text-slate-500">You have no bookings yet.</div>
         ) : (

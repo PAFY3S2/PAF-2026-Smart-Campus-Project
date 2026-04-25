@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { MessageSquare } from 'lucide-react';
+import Loader from '../../components/common/Loader';
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -37,7 +38,7 @@ const MyTickets = () => {
       <h1 className="text-2xl font-bold text-slate-900">My Tickets</h1>
 
       {loading ? (
-        <div className="p-8 text-center text-slate-500">Loading tickets...</div>
+        <Loader message="Loading tickets..." />
       ) : tickets.length === 0 ? (
         <div className="p-8 text-center text-slate-500 bg-white rounded-xl shadow-sm border border-slate-200">
           You have not submitted any tickets.

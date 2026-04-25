@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Monitor, Building, Clock, MapPin, Users, CheckCircle, AlertTriangle, CalendarPlus, Wrench, XCircle, RefreshCcw } from 'lucide-react';
 import resourceService from '../../services/resourceService';
 import { resolveImage } from '../../utils/imageUtils';
+import Loader from '../../components/common/Loader';
 
 const ResourceDetails = () => {
   const { id } = useParams();
@@ -40,11 +41,7 @@ const ResourceDetails = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <Loader message="Loading resource details..." />;
   }
 
   if (error || !resource) {

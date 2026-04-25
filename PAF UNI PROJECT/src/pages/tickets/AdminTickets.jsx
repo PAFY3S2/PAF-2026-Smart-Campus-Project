@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { MessageSquare, Save } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import Loader from '../../components/common/Loader';
 
 const AdminTickets = () => {
   const { user } = useAuth();
@@ -57,7 +58,7 @@ const AdminTickets = () => {
         </div>
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-             <div className="p-4 text-center text-slate-500 text-sm">Loading...</div>
+             <Loader message="Loading tickets..." fullScreen={false} />
           ) : (
             <div className="divide-y divide-slate-100">
               {tickets.map(ticket => (

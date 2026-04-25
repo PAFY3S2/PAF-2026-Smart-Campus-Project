@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import { CheckCircle, XCircle } from 'lucide-react';
+import Loader from '../../components/common/Loader';
 
 const AdminBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -32,7 +33,7 @@ const AdminBookings = () => {
 
       <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors">
         {loading ? (
-          <div className="p-8 text-center text-slate-500 dark:text-slate-400">Loading bookings...</div>
+          <Loader message="Loading bookings..." />
         ) : bookings.length === 0 ? (
           <div className="p-8 text-center text-slate-500 dark:text-slate-400">No bookings found.</div>
         ) : (
