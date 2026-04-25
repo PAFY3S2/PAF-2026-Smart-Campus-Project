@@ -1,5 +1,6 @@
 import React from 'react';
 import { Activity, CalendarPlus, PackagePlus, AlertTriangle } from 'lucide-react';
+import Card, { CardBody } from '../../../components/common/Card';
 
 const ActivityFeed = () => {
   // Hardcoded mock actions as per requirements for now.
@@ -13,7 +14,8 @@ const ActivityFeed = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 mt-6 h-full">
+    <Card className="mt-6 h-full flex flex-col">
+      <CardBody className="flex-1 flex flex-col">
       <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center text-sm uppercase tracking-wider">
         <Activity className="w-4 h-4 mr-2" />
         Recent Activity
@@ -48,7 +50,8 @@ const ActivityFeed = () => {
           </div>
         ))}
       </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 };
 

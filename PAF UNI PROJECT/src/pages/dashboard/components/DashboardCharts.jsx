@@ -4,6 +4,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as LineTooltip, ResponsiveContainer 
 } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
+import Card, { CardBody } from '../../../components/common/Card';
 
 const DashboardCharts = ({ resourcesData, bookingsData }) => {
 
@@ -45,7 +46,8 @@ const DashboardCharts = ({ resourcesData, bookingsData }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       
       {/* Resource Status Pie Chart */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+      <Card className="h-full flex flex-col">
+        <CardBody className="flex-1 flex flex-col">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 text-sm uppercase tracking-wider">Resource Status</h3>
         <div className="h-64 w-full min-w-0 min-h-0" style={{ position: 'relative' }}>
         {resourcesData.length > 0 ? (
@@ -74,10 +76,12 @@ const DashboardCharts = ({ resourcesData, bookingsData }) => {
           <div className="h-full flex items-center justify-center text-slate-400">No Resource Data</div>
         )}
         </div>
-      </div>
+        </CardBody>
+      </Card>
 
       {/* Bookings Trend Line Chart */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+      <Card className="h-full flex flex-col">
+        <CardBody className="flex-1 flex flex-col">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 text-sm uppercase tracking-wider">Bookings Trend (Last 7 Days)</h3>
         <div className="h-64 w-full min-w-0 min-h-0" style={{ position: 'relative' }}>
         {bookingsData.length > 0 ? (
@@ -104,7 +108,8 @@ const DashboardCharts = ({ resourcesData, bookingsData }) => {
           <div className="h-full flex items-center justify-center text-slate-400">No Booking Data</div>
         )}
         </div>
-      </div>
+        </CardBody>
+      </Card>
 
     </div>
   );

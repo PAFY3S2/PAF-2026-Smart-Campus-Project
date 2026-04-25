@@ -1,8 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Users, Calendar, Ticket } from 'lucide-react';
+import Card, { CardBody } from '../../../components/common/Card';
 
 const DashboardCards = ({ stats }) => {
+  const navigate = useNavigate();
   const statCards = [
     { 
       name: 'Total Resources', 
@@ -33,25 +35,26 @@ const DashboardCards = ({ stats }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {statCards.map((stat) => (
-        <Link 
+        <Card 
           key={stat.name} 
-          to={stat.to}
-          className="group block bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-indigo-300 dark:hover:border-indigo-700"
+          hoverable
+          onClick={() => navigate(stat.to)}
+          className="group"
         >
-          <div className="flex items-center">
-            <div className={`p-3 rounded-lg ${stat.bg} mr-4 transition-transform duration-300 group-hover:scale-110`}>
+          <CardBody className="flex items-center">
+            <div className={`p-3 rounded-xl ${stat.bg} mr-5 transition-transform duration-300 group-hover:scale-110 shadow-sm`}>
               <stat.icon className={`w-6 h-6 ${stat.color}`} />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <p className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors mb-1">
                 {stat.name}
               </p>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <p className="text-3xl font-extrabold text-slate-900 dark:text-slate-100">
                 {stat.value}
               </p>
             </div>
-          </div>
-        </Link>
+          </CardBody>
+        </Card>
       ))}
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Server, Database, Activity, CheckCircle2 } from 'lucide-react';
+import Card, { CardBody } from '../../../components/common/Card';
 
 const SystemStatus = () => {
   const [uptime, setUptime] = useState('');
@@ -30,7 +31,8 @@ const SystemStatus = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 mt-6">
+    <Card className="mt-6 h-full flex flex-col">
+      <CardBody className="flex-1 flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center text-sm uppercase tracking-wider">
           <Server className="w-4 h-4 mr-2" />
@@ -62,7 +64,8 @@ const SystemStatus = () => {
           <span className="font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">{uptime}</span>
         </div>
       </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 };
 

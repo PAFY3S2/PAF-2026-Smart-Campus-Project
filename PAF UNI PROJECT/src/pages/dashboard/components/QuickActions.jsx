@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, CalendarPlus, TicketPlus, UserCog } from 'lucide-react';
+import Card, { CardBody } from '../../../components/common/Card';
 
 const QuickActions = ({ role }) => {
   // Base actions visible to all users
@@ -42,7 +43,8 @@ const QuickActions = ({ role }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
+    <Card className="h-full flex flex-col">
+      <CardBody className="flex-1 flex flex-col justify-center">
       <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 text-sm uppercase tracking-wider">Quick Actions</h3>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {actions.map((action) => (
@@ -56,7 +58,8 @@ const QuickActions = ({ role }) => {
           </Link>
         ))}
       </div>
-    </div>
+      </CardBody>
+    </Card>
   );
 };
 

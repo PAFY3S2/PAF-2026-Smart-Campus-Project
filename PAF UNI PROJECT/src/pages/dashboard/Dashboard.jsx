@@ -8,6 +8,7 @@ import QuickActions from './components/QuickActions';
 import DashboardCharts from './components/DashboardCharts';
 import ActivityFeed from './components/ActivityFeed';
 import SystemStatus from './components/SystemStatus';
+import Card, { CardBody } from '../../components/common/Card';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -61,15 +62,15 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Welcome Card */}
-        <div className="lg:col-span-1 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-center">
-          <div className="flex items-center space-x-4">
+        <Card className="lg:col-span-1 flex flex-col justify-center h-full">
+          <CardBody className="flex items-center space-x-5">
             <img src={user.avatar} alt="Profile" className="w-16 h-16 rounded-full border-2 border-slate-100 dark:border-slate-700 shadow-sm" />
             <div>
-              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Welcome back, {user.name}!</h2>
-              <p className="text-slate-500 dark:text-slate-400">Role: <span className="font-semibold text-indigo-600 dark:text-indigo-400">{user.role}</span></p>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">Welcome back, {user.name}!</h2>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">Role: <span className="text-primary">{user.role}</span></p>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
         {/* Quick Actions Panel */}
         <div className="lg:col-span-2">
