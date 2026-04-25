@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Monitor, Building, Plus, Pencil, Trash2, X, AlertCircle, Loader2, Power, Database, Activity, XCircle, CalendarPlus, Image as ImageIcon } from 'lucide-react';
+import { Search, Filter, Monitor, Building, Plus, Pencil, Trash2, X, AlertCircle, Loader2, Power, Database, Activity, XCircle, CalendarPlus, Image as ImageIcon, RefreshCcw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import resourceApi from '../../services/resourceApi';
@@ -23,17 +23,20 @@ const Resources = () => {
   const [filterLocation, setFilterLocation] = useState('ALL');
   const [minCapacity, setMinCapacity] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
   const fetchResources = async (showLoader = true) => {
     if (showLoader) setIsLoading(true);
+    setError(null);
     try {
       const { data } = await resourceApi.getAllResources();
-      setResources(data);
+      setResources(data || []);
     } catch (err) {
       console.error('Failed to fetch resources:', err);
+      setError('Unable to establish connection with the central database.');
       toast.error('Unable to sync institutional assets');
     } finally {
       if (showLoader) setIsLoading(false);
@@ -106,6 +109,27 @@ const Resources = () => {
       <div className="flex flex-col items-center justify-center py-32">
         <div className="w-12 h-12 border-4 border-[#F5AB24] border-t-[#142B5D] rounded-full animate-spin mb-4"></div>
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest animate-pulse">Syncing Facility Grid...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 space-y-6">
+        <div className="bg-rose-50 dark:bg-rose-900/20 p-6 rounded-full text-rose-600">
+          <AlertCircle className="w-12 h-12" />
+        </div>
+        <div className="text-center max-w-md">
+          <h3 className="text-2xl font-black text-[#142B5D] dark:text-white uppercase tracking-tighter mb-2">System Sync Failure</h3>
+          <p className="text-sm font-medium text-slate-400 mb-8 px-4">{error}</p>
+          <button 
+            onClick={() => fetchResources(true)}
+            className="px-8 py-3.5 bg-[#142B5D] hover:bg-[#0D1E40] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#142B5D]/20 transition-all active:scale-95 flex items-center justify-center mx-auto space-x-2"
+          >
+            <RefreshCcw className="w-4 h-4" />
+            <span>Reboot Connection</span>
+          </button>
+        </div>
       </div>
     );
   }
