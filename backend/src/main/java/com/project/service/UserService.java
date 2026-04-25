@@ -25,4 +25,14 @@ public class UserService {
     public User updateUser(User user) {
         return userRepository.save(user);
     }
+
+    public long countTotalUsers() {
+        return userRepository.count();
+    }
+
+    public long countUsersByRole(com.project.model.Role role) {
+        return userRepository.findAll().stream()
+                .filter(u -> u.getRole() == role)
+                .count();
+    }
 }
