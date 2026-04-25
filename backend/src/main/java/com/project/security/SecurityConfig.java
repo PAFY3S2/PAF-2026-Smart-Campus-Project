@@ -63,7 +63,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/oauth2/**", "/login", "/login/**", "/ws/**", "/api/auth/**", "/uploads/**", "/error").permitAll()
+                .requestMatchers("/oauth2/**", "/login", "/login/**", "/ws/**", "/api/auth/**", "/uploads/**", "/api/uploads/**", "/error").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

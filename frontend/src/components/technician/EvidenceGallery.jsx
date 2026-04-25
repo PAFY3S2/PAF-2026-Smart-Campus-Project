@@ -10,8 +10,11 @@ const getImageUrl = (url) => {
     return `https://placehold.co/600x400/142B5D/FFFFFF?text=${encodeURIComponent(url)}`;
   }
   
-  // Prepend backend URL for relative paths
-  return `http://localhost:8081${url.startsWith('/') ? '' : '/'}${url}`;
+  // Extract just the filename from paths like "/uploads/filename.jpg"
+  const filename = url.split('/').pop();
+  
+  // Use the API endpoint which handles auth and file serving
+  return `http://localhost:8081/api/uploads/${filename}`;
 };
 
 const ImageItem = ({ img, index, onImageClick }) => {
