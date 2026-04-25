@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useTickets, useUpdateTicketStatus } from '../../hooks/useTickets';
 import TicketTable from '../../components/technician/TicketTable';
 import abcImage from '../../assets/abc.jpg';
+import resolvedImage from '../../assets/back - resolved.jpg';
+import priorityImage from '../../assets/prioriy.jpg';
 
 const TechnicianTicketListView = ({ title, subtitle, pageType = 'active' }) => {
   const { user } = useAuth();
@@ -51,10 +53,10 @@ const TechnicianTicketListView = ({ title, subtitle, pageType = 'active' }) => {
       </div>
 
       <div 
-        className={`rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden ${pageType === 'in-progress' ? 'bg-cover bg-center relative' : 'bg-white dark:bg-slate-900'}`}
-        style={pageType === 'in-progress' ? { backgroundImage: `url(${abcImage})` } : {}}
+        className={`rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden ${pageType === 'in-progress' || pageType === 'resolved' || pageType === 'priority' ? 'bg-cover bg-center relative' : 'bg-white dark:bg-slate-900'}`}
+        style={pageType === 'in-progress' ? { backgroundImage: `url(${abcImage})` } : pageType === 'resolved' ? { backgroundImage: `url(${resolvedImage})` } : pageType === 'priority' ? { backgroundImage: `url(${priorityImage})` } : {}}
       >
-        {pageType === 'in-progress' && (
+        {(pageType === 'in-progress' || pageType === 'resolved' || pageType === 'priority') && (
           <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/60 backdrop-blur-md z-0 pointer-events-none"></div>
         )}
         <div className="relative z-10">
