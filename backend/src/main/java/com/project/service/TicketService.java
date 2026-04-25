@@ -40,6 +40,7 @@ public class TicketService {
     }
 
     public Optional<Ticket> getTicketById(String id) {
+        if (id == null) return Optional.empty();
         return ticketRepository.findById(id).map(this::populateDetails);
     }
 
@@ -56,10 +57,22 @@ public class TicketService {
     public Ticket createTicket(Ticket ticket) {
         ticket.setCreatedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+        
+        // Notify student of submission
+        Notification notification = Notification.builder()
+                .userId(saved.getUserId())
+                .title("Ticket Created")
+                .message("Your incident report for " + saved.getCategory() + " has been logged. Technical staff will review it shortly.")
+                .type(NotificationType.TICKET)
+                .build();
+        notificationService.createNotification(notification);
+        
+        return saved;
     }
 
     public Ticket updateTicketStatus(String id, TicketStatus status, String notes) {
+        if (id == null) throw new IllegalArgumentException("ID cannot be null");
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
@@ -82,6 +95,7 @@ public class TicketService {
     }
 
     public Ticket assignTechnician(String id, String technicianId) {
+        if (id == null) throw new IllegalArgumentException("ID cannot be null");
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
@@ -104,12 +118,14 @@ public class TicketService {
     }
 
     public List<String> getEvidence(String ticketId) {
+        if (ticketId == null) throw new IllegalArgumentException("Ticket ID cannot be null");
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         return ticket.getImages() != null ? ticket.getImages() : List.of();
     }
 
     public Ticket addMessage(String ticketId, String content, String senderType, String authorName) {
+        if (ticketId == null) throw new IllegalArgumentException("Ticket ID cannot be null");
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
@@ -141,6 +157,7 @@ public class TicketService {
     }
 
     public Ticket addNote(String ticketId, String content, String authorName) {
+        if (ticketId == null) throw new IllegalArgumentException("Ticket ID cannot be null");
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         
