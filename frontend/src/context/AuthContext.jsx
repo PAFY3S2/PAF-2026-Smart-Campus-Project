@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -8,55 +9,79 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check url constraints for oauth redirect token
-    const params = new URLSearchParams(window.location.search);
-    const tokenFromUrl = params.get('token');
+    const initAuth = async () => {
+      // Check URL params for OAuth redirect token
+      const params = new URLSearchParams(window.location.search);
+      const tokenFromUrl = params.get('token');
 
-    if (tokenFromUrl) {
-      localStorage.setItem('token', tokenFromUrl);
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        // Assuming token has standard jwt payload or permissions injected
-        const isExpired = decoded.exp * 1000 < Date.now();
-        if (!isExpired) {
-           setUser({
-              id: decoded.sub || decoded.id,
-              // we may want to fetch user details from /api/users/me later, or rely on JWT claims directly
-              // for simplicity, if backend only provides standard claims, role validation might need a custom claim or user fetch.
-              // Let's assume backend didn't embed roles in JWT (as we used simple Subject). 
-              // We'll mock role from fetch or rely on decoding later. Let's just set decoded.
-              ...decoded
-           });
-        } else {
-           localStorage.removeItem('token');
-        }
-      } catch (e) {
-        console.error("Invalid token", e);
-        localStorage.removeItem('token');
+      if (tokenFromUrl) {
+        localStorage.setItem('token', tokenFromUrl);
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-    }
-    setLoading(false);
+
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded = jwtDecode(token);
+          const isExpired = decoded.exp * 1000 < Date.now();
+          if (!isExpired) {
+            // Set user immediately from token
+            setUser({
+              id: decoded.sub || decoded.id,
+              name: decoded.name,
+              email: decoded.email,
+              role: decoded.role,
+            });
+
+            // Sync with backend to get latest profile (optional)
+            try {
+              const res = await api.get('/auth/me');
+              setUser(res.data);
+            } catch (err) {
+              console.warn('Failed to sync user profile, relying on JWT', err);
+            }
+          } else {
+            localStorage.removeItem('token');
+          }
+        } catch (e) {
+          console.error('Invalid token', e);
+          localStorage.removeItem('token');
+        }
+      }
+      setLoading(false);
+    };
+
+    initAuth();
   }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     setUser(null);
     window.location.href = '/login';
-  };
+  }, []);
 
-  const login = (token) => {
+  const login = useCallback(async (email, password) => {
+    const res = await api.post('/auth/login', { email, password });
+    const { token } = res.data;
     localStorage.setItem('token', token);
     const decoded = jwtDecode(token);
-    setUser({ id: decoded.sub, ...decoded });
-  };
+    const userData = {
+      id: decoded.sub || decoded.id,
+      name: decoded.name,
+      email: decoded.email,
+      role: decoded.role,
+    };
+    setUser(userData);
+    return userData;
+  }, []);
+
+  const register = useCallback(async (userData) => {
+    const res = await api.post('/auth/register', userData);
+    return res.data;
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, setUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );

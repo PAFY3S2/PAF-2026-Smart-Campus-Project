@@ -34,7 +34,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     }
 
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        String targetUrl = allowedOrigins + "/oauth2/redirect";
+        String[] origins = allowedOrigins.split(",");
+        String baseOrigin = origins.length > 0 ? origins[0] : "http://localhost:5173";
+        String targetUrl = baseOrigin + "/oauth2/redirect";
 
         String token = tokenProvider.generateToken(authentication);
 

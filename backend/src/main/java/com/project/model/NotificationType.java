@@ -3,5 +3,7 @@ package com.project.model;
 public enum NotificationType {
     BOOKING,
     TICKET,
-    COMMENT
+    COMMENT,
+    BOOKING_UPDATE,
+    TICKET_UPDATE
 }

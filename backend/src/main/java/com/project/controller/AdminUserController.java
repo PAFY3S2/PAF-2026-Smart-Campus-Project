@@ -25,6 +25,14 @@ public class AdminUserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @GetMapping("/technicians")
+    public ResponseEntity<List<User>> getTechnicians() {
+        List<User> technicians = userService.getAllUsers().stream()
+                .filter(u -> u.getRole() == com.project.model.Role.TECHNICIAN)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(technicians);
+    }
+
     @PatchMapping("/{id}/role")
     public ResponseEntity<?> updateUserRole(@PathVariable String id, @Valid @RequestBody RoleUpdateRequest request) {
         Optional<User> userOptional = userService.getUserById(id);

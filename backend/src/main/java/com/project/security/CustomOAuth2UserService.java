@@ -64,13 +64,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId().toUpperCase()));
         user.setName(oAuth2User.getAttribute("name"));
         user.setEmail(oAuth2User.getAttribute("email"));
+        user.setAvatar(oAuth2User.getAttribute("picture"));
         user.setRole(Role.USER); // Default role
-        user.setCreatedAt(LocalDateTime.now());
+        user.setCreatedAt(java.time.LocalDateTime.now());
         return userRepository.save(user);
     }
 
     private User updateExistingUser(User existingUser, OAuth2User oAuth2User) {
         existingUser.setName(oAuth2User.getAttribute("name"));
+        existingUser.setAvatar(oAuth2User.getAttribute("picture"));
         return userRepository.save(existingUser);
     }
 }

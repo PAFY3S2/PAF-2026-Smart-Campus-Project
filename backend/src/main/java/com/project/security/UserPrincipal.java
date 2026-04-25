@@ -16,14 +16,16 @@ public class UserPrincipal implements UserDetails, OAuth2User {
     private String email;
     private String name;
     private String password;
+    private boolean enabled;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
-    public UserPrincipal(String id, String email, String name, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(String id, String email, String name, String password, boolean enabled, Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.name = name;
         this.password = password;
+        this.enabled = enabled;
         this.authorities = authorities;
     }
 
@@ -34,6 +36,7 @@ public class UserPrincipal implements UserDetails, OAuth2User {
                 user.getEmail(),
                 user.getName(),
                 user.getPassword(),
+                user.isEnabled(),
                 Collections.singletonList(authority)
         );
     }
@@ -89,7 +92,7 @@ public class UserPrincipal implements UserDetails, OAuth2User {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
     @Override
