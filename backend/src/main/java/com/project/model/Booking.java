@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -38,6 +39,8 @@ public class Booking {
     private BookingStatus status = BookingStatus.PENDING;
     
     private String rejectionReason;
+
+    private List<String> images;
 
     @CreatedDate
     private LocalDateTime createdAt;
