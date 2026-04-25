@@ -50,7 +50,7 @@ public class DataInitializer implements CommandLineRunner {
             Resource r3 = Resource.builder().name("Projector 4K").type(ResourceType.EQUIPMENT).capacity(1).location("IT Store").status(ResourceStatus.ACTIVE).build();
             Resource r4 = Resource.builder().name("Meeting Room 101").type(ResourceType.ROOM).capacity(15).location("Building C").status(ResourceStatus.ACTIVE).build();
             
-            resourceRepository.saveAll(java.util.Objects.requireNonNull(java.util.List.of(r1, r2, r3, r4)));
+            resourceRepository.saveAll(java.util.List.of(r1, r2, r3, r4));
             System.out.println("Seeded 4 default institutional resources.");
         }
     }
