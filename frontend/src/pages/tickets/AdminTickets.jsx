@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { MessageSquare, Save, Ticket } from 'lucide-react';
+import { MessageSquare, Save, Ticket, AlertCircle, Clock, CheckCircle, User, Shield, ArrowLeft, Image as ImageIcon, Send, Database } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/shared/PageHeader';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminTickets = () => {
   const { user } = useAuth();
@@ -18,7 +19,10 @@ const AdminTickets = () => {
         api.get('/tickets'),
         api.get('/admin/users/technicians')
       ]);
-      setTickets(ticketsRes.data.sort((a,b) => b.id - a.id));
+      setTickets(ticketsRes.data.sort((a,b) => {
+        if (typeof a.id === 'number') return b.id - a.id;
+        return b.id.toString().localeCompare(a.id.toString());
+      }));
       setTechnicians(techsRes.data);
       setLoading(false);
     } catch (err) {
@@ -61,164 +65,320 @@ const AdminTickets = () => {
   };
 
   return (
-    <div className="space-y-8 h-full flex flex-col">
-      <PageHeader title="Tickets Control Room" subtitle="System-wide incident monitoring and assignment" />
-      
-      <div className="flex flex-1 min-h-0 gap-6">
-      {/* List Column */}
-      <div className={`w-full ${activeTicket ? 'hidden lg:flex' : 'flex'} lg:w-1/3 flex-col bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden transition-colors`}>
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-          <h2 className="text-lg font-black text-[#142B5D] dark:text-white uppercase tracking-tighter">Tickets Map</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          {loading ? (
-             <div className="p-4 text-center text-slate-500 text-sm">Loading...</div>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {tickets.map(ticket => (
-                <button
-                  key={ticket.id}
-                  onClick={() => setActiveTicket(ticket)}
-                  className={`w-full text-left p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition border-l-4 ${activeTicket?.id === ticket.id ? 'border-[#F5AB24] bg-indigo-50/30 dark:bg-[#F5AB24]/5' : 'border-transparent'}`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">TKT-{ticket.id}</span>
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${ticket.priority === 'HIGH' || ticket.priority === 'URGENT' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>{ticket.priority}</span>
-                  </div>
-                  <h4 className="font-black text-[#142B5D] dark:text-slate-200 text-sm line-clamp-1 mb-1 uppercase tracking-tight">{ticket.category} Issue</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-500 line-clamp-1 italic">{ticket.description}</p>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="h-[calc(100vh-120px)] text-slate-200 flex flex-col font-sans relative overflow-hidden">
+      {/* Animated Background Blobs */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px] animate-blob"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
 
-      {/* Details Column */}
-      {activeTicket ? (
-        <div className="flex-1 bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col transition-colors">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-start bg-slate-50/30 dark:bg-slate-800/20">
-            <div>
-              <div className="flex items-center space-x-3 mb-2">
-                <h2 className="text-2xl font-black text-[#142B5D] dark:text-white tracking-tighter">TKT-{activeTicket.id}</h2>
-                <span className="px-2.5 py-1 rounded font-black text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                  {activeTicket.status}
-                </span>
-                <span className="px-2.5 py-1 rounded font-black text-[10px] uppercase tracking-widest bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 border border-rose-100 dark:border-rose-900/50">
-                  {activeTicket.priority} PRIORITY
-                </span>
-              </div>
-              <p className="text-slate-500 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">Reported by User #{activeTicket.userId} for Resource #{activeTicket.resourceId}</p>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {user.role === 'ADMIN' && (
-                <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Assign:</span>
-                  <select
-                    className="text-xs font-bold bg-transparent outline-none text-[#142B5D] dark:text-[#F5AB24]"
-                    value={activeTicket.technicianId || ''}
-                    onChange={(e) => handleAssignTechnician(activeTicket.id, e.target.value)}
-                  >
-                    <option value="">Unassigned</option>
-                    {technicians.map(tech => (
-                      <option key={tech.id} value={tech.id}>{tech.name}</option>
-                    ))}
-                  </select>
+      <div className="relative z-10 flex flex-col h-full space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex-shrink-0"
+        >
+          <PageHeader 
+            title="Tickets Control Room" 
+            subtitle="System-wide incident monitoring and assignment" 
+          />
+        </motion.div>
+        
+        <div className="flex flex-1 min-h-0 gap-6 overflow-hidden">
+          {/* List Column */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className={`w-full ${activeTicket ? 'hidden lg:flex' : 'flex'} lg:w-[350px] flex-col glass-dark rounded-[2rem] border border-slate-700/50 overflow-hidden shadow-2xl transition-all duration-500`}
+          >
+            <div className="p-5 border-b border-slate-700/50 bg-slate-900/60 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+                  <Ticket className="text-blue-400 w-4 h-4" />
                 </div>
-              )}
-              
-              <select
-                className="text-xs font-black border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 focus:ring-primary outline-none bg-white dark:bg-slate-800 text-[#142B5D] dark:text-white uppercase tracking-widest"
-                value={activeTicket.status}
-                onChange={(e) => handleUpdateStatus(activeTicket.id, e.target.value)}
-              >
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="CLOSED">Closed</option>
-              </select>
-              <button 
-                onClick={() => setActiveTicket(null)}
-                className="lg:hidden text-slate-400 hover:text-slate-600 px-3 py-1.5 border border-slate-200 rounded-lg"
-              >
-                Back
-              </button>
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-6 flex flex-col lg:flex-row gap-8">
-            <div className="flex-1 space-y-6">
-              <div>
-                <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-3">Incident Description</h3>
-                <p className="text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-100 dark:border-slate-800 font-medium text-sm leading-relaxed">{activeTicket.description}</p>
+                <h2 className="text-sm font-black text-white uppercase tracking-wider">Tickets Map</h2>
               </div>
+              <div className="px-3 py-1 rounded-lg bg-slate-800/80 border border-slate-700 text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                {tickets.length} Active
+              </div>
+            </div>
 
-              {activeTicket.images && activeTicket.images.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Attachments</h3>
-                  <div className="flex gap-4">
-                    {activeTicket.images.map((img, i) => (
-                      <img key={i} src={img} alt="Attachment" className="w-24 h-24 object-cover rounded-lg border border-slate-200" />
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3">
+              {loading ? (
+                 <div className="flex flex-col items-center justify-center h-full gap-4 py-20">
+                    <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Syncing Feed...</span>
+                 </div>
+              ) : (
+                <div className="space-y-3">
+                  <AnimatePresence mode="popLayout">
+                    {tickets.map((ticket, i) => (
+                      <motion.button
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        key={ticket.id}
+                        onClick={() => setActiveTicket(ticket)}
+                        className={`w-full text-left p-4 rounded-2xl transition-all duration-300 group relative overflow-hidden border ${
+                          activeTicket?.id === ticket.id 
+                            ? 'bg-blue-600/15 border-blue-500/50 shadow-lg shadow-blue-500/10' 
+                            : 'bg-white/[0.02] border-slate-700/30 hover:bg-white/[0.05] hover:border-slate-600/50'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">TX-{ticket.id.toString().slice(-6)}</span>
+                          <span className={`text-[8px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                            ticket.priority === 'HIGH' || ticket.priority === 'URGENT' 
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' 
+                              : 'bg-slate-800 text-slate-400 border border-slate-700'
+                          }`}>
+                            {ticket.priority}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-slate-200 group-hover:text-white transition-colors text-xs uppercase tracking-tight mb-1">{ticket.category} Failure</h4>
+                        <p className="text-[10px] text-slate-500 line-clamp-1 italic group-hover:text-slate-400 transition-colors">{ticket.description}</p>
+                      </motion.button>
                     ))}
-                  </div>
+                  </AnimatePresence>
                 </div>
               )}
             </div>
+          </motion.div>
 
-            <div className="w-full lg:w-80 flex flex-col border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 pt-6 lg:pt-0 lg:pl-6">
-              <h3 className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-6 flex items-center">
-                <MessageSquare className="w-4 h-4 mr-2 text-[#F5AB24]" /> Official Discussion
-              </h3>
-              
-              <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
-                {activeTicket.comments?.length === 0 ? (
-                  <p className="text-xs text-slate-400 dark:text-slate-600 italic text-center py-8">No formal entries yet</p>
-                ) : (
-                  activeTicket.comments?.map((comment, idx) => (
-                    <div key={idx} className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-black text-[10px] text-[#142B5D] dark:text-[#F5AB24] uppercase tracking-widest">{comment.author}</span>
-                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-600">{comment.createdAt ? new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
-                      </div>
-                      <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-normal">{comment.text}</p>
+          {/* Details Column */}
+          <AnimatePresence mode="wait">
+            {activeTicket ? (
+              <motion.div 
+                key="detail-view"
+                initial={{ opacity: 0, scale: 0.99 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.99 }}
+                className="flex-1 glass-dark rounded-[2.5rem] border border-slate-700/50 overflow-hidden shadow-2xl flex flex-col relative"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-rose-500 opacity-40"></div>
+
+                <div className="p-8 border-b border-slate-700/50 bg-slate-900/60 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-[1.25rem] bg-gradient-to-br from-slate-800 to-slate-950 border border-slate-700 flex items-center justify-center shadow-2xl relative overflow-hidden group">
+                       <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors"></div>
+                       <AlertCircle className={`w-8 h-8 relative z-10 ${activeTicket.priority === 'HIGH' ? 'text-rose-500' : 'text-blue-400'}`} />
                     </div>
-                  ))
-                )}
-              </div>
+                    <div className="space-y-2">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-xl font-black text-white tracking-tight uppercase leading-none">Incident Report</h2>
+                          <div className="flex gap-2">
+                             <span className="px-2 py-0.5 rounded-md font-black text-[8px] uppercase tracking-widest bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                               {activeTicket.status}
+                             </span>
+                             <span className="px-2 py-0.5 rounded-md font-black text-[8px] uppercase tracking-widest bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                               {activeTicket.priority}
+                             </span>
+                          </div>
+                        </div>
+                        <h3 className="text-xs font-bold text-slate-500 tracking-[0.2em] font-mono">TX-{activeTicket.id}</h3>
+                      </div>
+                      <div className="flex items-center gap-6 pt-1">
+                        <div className="flex items-center gap-2">
+                           <User size={12} className="text-blue-500/50" />
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Origin: {activeTicket.userId?.toString().slice(-12)}</span>
+                        </div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                        <div className="flex items-center gap-2">
+                           <Database size={12} className="text-purple-500/50" />
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Resource: {activeTicket.resourceId?.toString().slice(-12)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    {user.role === 'ADMIN' && (
+                      <div className="flex items-center gap-3 bg-slate-950/50 px-4 py-2 rounded-2xl border border-slate-700/50 shadow-inner group transition-all hover:border-slate-600">
+                        <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest group-hover:text-slate-400 transition-colors whitespace-nowrap">Assign To:</span>
+                        <select
+                          className="text-[10px] font-black bg-transparent outline-none text-blue-400 cursor-pointer hover:text-blue-300 transition-colors uppercase tracking-widest min-w-[100px]"
+                          value={activeTicket.technicianId || ''}
+                          onChange={(e) => handleAssignTechnician(activeTicket.id, e.target.value)}
+                        >
+                          <option value="" className="bg-slate-900 text-slate-500 italic">Unassigned</option>
+                          {technicians.map(tech => (
+                            <option key={tech.id} value={tech.id} className="bg-slate-900 text-white font-bold">{tech.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    
+                    <div className="h-10 w-[2px] bg-slate-800 hidden md:block mx-1"></div>
 
-              <div className="mt-auto">
-                <textarea
-                  className="w-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl p-4 text-xs font-medium text-slate-900 dark:text-white focus:ring-2 focus:ring-primary dark:focus:ring-[#F5AB24] outline-none resize-none mb-3 placeholder:text-slate-300 dark:placeholder:text-slate-600"
-                  rows="3"
-                  placeholder="Record formal resolution note..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                ></textarea>
-                <button
-                  onClick={handleAddComment}
-                  disabled={!newComment.trim()}
-                  className="w-full bg-[#142B5D] dark:bg-[#142B5D] hover:bg-[#0D1E40] text-white text-[10px] font-black uppercase tracking-[0.2em] py-3 px-4 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed flex justify-center items-center shadow-lg shadow-blue-900/20"
-                >
-                  <Save className="w-4 h-4 mr-3 text-[#F5AB24]" /> Send Entry
-                </button>
-              </div>
-            </div>
-          </div>
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setActiveTicket(null)}
+                      className="lg:hidden w-12 h-12 flex items-center justify-center bg-slate-800 border border-slate-700 rounded-2xl text-slate-400"
+                    >
+                      <ArrowLeft size={20} />
+                    </motion.button>
+                  </div>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-8 lg:p-10 flex flex-col lg:flex-row gap-10 custom-scrollbar">
+                  <div className="flex-1 space-y-12">
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
+                        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Operational Report</h3>
+                      </div>
+                      <div className="bg-slate-900/40 p-8 rounded-[2rem] border border-slate-700/30 relative group overflow-hidden">
+                        <div className="absolute -top-4 -right-4 text-white/[0.02] transition-colors group-hover:text-white/[0.04]">
+                           <Shield size={120} />
+                        </div>
+                        <p className="text-slate-300 font-medium text-base leading-[1.8] relative z-10">{activeTicket.description}</p>
+                      </div>
+                    </section>
+
+                    <section>
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-1.5 h-6 bg-purple-500 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                        <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Evidence Logs</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-5">
+                        {activeTicket.images && activeTicket.images.length > 0 ? (
+                          activeTicket.images.map((img, i) => (
+                            <motion.div 
+                              whileHover={{ scale: 1.05, rotate: 1, zIndex: 50 }}
+                              key={i} 
+                              className="w-36 h-36 rounded-2xl border-2 border-slate-700/50 overflow-hidden shadow-2xl bg-slate-900 cursor-zoom-in relative group"
+                            >
+                              <img src={img} alt="Evidence" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </motion.div>
+                          ))
+                        ) : (
+                          <div className="w-full py-12 rounded-[2rem] border-2 border-dashed border-slate-800 flex flex-col items-center justify-center gap-4 bg-slate-900/20 group">
+                             <div className="w-16 h-16 rounded-full bg-slate-800/50 flex items-center justify-center border border-slate-700/50 group-hover:border-slate-600 transition-all">
+                                <ImageIcon className="text-slate-700 w-7 h-7 group-hover:text-slate-500 transition-colors" />
+                             </div>
+                             <span className="text-[10px] font-black text-slate-600 uppercase tracking-[0.25em]">No visual evidence logged</span>
+                          </div>
+                        )}
+                      </div>
+                    </section>
+                  </div>
+
+                  {/* Discussion Panel */}
+                  <div className="w-full lg:w-[24rem] flex flex-col bg-slate-900/60 rounded-[2rem] border border-slate-700/50 overflow-hidden shadow-xl flex-shrink-0">
+                     <div className="p-6 border-b border-slate-700/50 flex items-center justify-between bg-slate-950/40">
+                        <div className="flex items-center gap-3">
+                           <MessageSquare size={16} className="text-emerald-400" />
+                           <h3 className="text-[10px] font-black text-white uppercase tracking-[0.25em]">Response Log</h3>
+                        </div>
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                     </div>
+                      
+                      <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar min-h-[300px]">
+                        {activeTicket.comments?.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center h-full gap-5 opacity-40">
+                             <div className="w-14 h-14 rounded-full border-2 border-dashed border-slate-600 flex items-center justify-center bg-slate-800/20">
+                                <Clock size={24} className="text-slate-500" />
+                             </div>
+                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-center max-w-[150px] leading-loose">Initialization required. Enter primary resolution data below.</p>
+                          </div>
+                        ) : (
+                          activeTicket.comments?.map((comment, idx) => (
+                            <motion.div 
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              key={idx} 
+                              className={`p-4 rounded-2xl border ${
+                                comment.author === user.email ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-800/40 border-slate-700/50'
+                              }`}
+                            >
+                              <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/[0.03]">
+                                <span className={`font-black text-[8px] uppercase tracking-widest ${comment.author === user.email ? 'text-blue-400' : 'text-slate-400'}`}>
+                                  {comment.author === user.email ? 'Command Center' : comment.author.split('@')[0]}
+                                </span>
+                                <span className="text-[8px] font-bold text-slate-600">{comment.createdAt ? new Date(comment.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'LIVE'}</span>
+                              </div>
+                              <p className="text-[11px] font-medium text-slate-300 leading-relaxed">{comment.text}</p>
+                            </motion.div>
+                          ))
+                        )}
+                      </div>
+
+                      <div className="p-6 bg-slate-950/40 border-t border-slate-700/50 space-y-4">
+                        <div className="relative group">
+                          <textarea
+                            className="w-full border-2 border-slate-800 bg-slate-900/80 rounded-2xl p-4 text-[11px] font-medium text-white focus:ring-2 focus:ring-blue-500/30 outline-none resize-none placeholder:text-slate-700 transition-all group-focus-within:border-slate-700 group-focus-within:bg-slate-900"
+                            rows="4"
+                            placeholder="Type resolution entry..."
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                          ></textarea>
+                          <div className="absolute bottom-3 right-4 flex items-center gap-2 opacity-20 group-focus-within:opacity-60 transition-opacity">
+                             <kbd className="text-[8px] font-black bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700">ENTER</kbd>
+                          </div>
+                        </div>
+                        <motion.button
+                          whileHover={{ scale: 1.02, y: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleAddComment}
+                          disabled={!newComment.trim()}
+                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-[10px] font-black uppercase tracking-[0.25em] py-4 rounded-2xl transition-all disabled:opacity-20 disabled:cursor-not-allowed flex justify-center items-center shadow-xl shadow-blue-900/20 group relative overflow-hidden"
+                        >
+                          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                          <Send className="w-3.5 h-3.5 mr-3 text-blue-200 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> 
+                          Commit Resolution
+                        </motion.button>
+                      </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="empty-view"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="hidden lg:flex flex-1 items-center justify-center glass-dark rounded-[3rem] border border-slate-700/50 border-dashed relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 animate-pulse"></div>
+                <div className="text-center relative z-10 px-20">
+                    <motion.div 
+                      animate={{ y: [0, -12, 0], rotate: [0, 2, 0] }}
+                      transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                      className="w-28 h-28 bg-slate-900 border-2 border-slate-700/50 rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-blue-500/5"></div>
+                      <Ticket className="w-12 h-12 text-slate-700" />
+                      <div className="absolute top-0 right-0 p-3">
+                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
+                      </div>
+                    </motion.div>
+                    <h3 className="text-2xl font-black text-white uppercase tracking-[0.3em] mb-4">Signal Awaiting</h3>
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em] leading-[2] max-w-sm mx-auto">Select a prioritized incident from the map to initialize response sequence and authentication protocols.</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      ) : (
-        <div className="hidden lg:flex flex-1 items-center justify-center bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 border-dashed text-slate-400 p-12 relative overflow-hidden transition-colors">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#142B5D] opacity-[0.02] dark:opacity-[0.1] -translate-y-32 translate-x-32 rotate-45"></div>
-          <div className="text-center relative z-10">
-              <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 border-4 border-white dark:border-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
-                <Ticket className="w-10 h-10 text-slate-200 dark:text-slate-700" />
-              </div>
-              <h3 className="text-sm font-black text-[#142B5D] dark:text-white uppercase tracking-[0.2em] opacity-30">Selection Required</h3>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-2 uppercase tracking-widest">Select an incident from the log to begin administration</p>
-          </div>
-        </div>
-      )}
       </div>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(71, 85, 105, 0.3);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(94, 114, 143, 0.5);
+        }
+      `}} />
     </div>
   );
 };

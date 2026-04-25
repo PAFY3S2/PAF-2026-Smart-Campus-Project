@@ -23,6 +23,15 @@
   .animation-delay-4000 {
     animation-delay: 4s;
   }
+  .glass {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-[0_8px_32px_0_rgba(31,38,135,0.37)];
+  }
+  .glass-dark {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 shadow-2xl;
+  }
+  .text-glow {
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+  }
 }
 
 @keyframes blob {
