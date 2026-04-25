@@ -173,6 +173,7 @@ public class AuthController {
     }
     
     @PatchMapping("/me")
+    @SuppressWarnings("unchecked")
     public ResponseEntity<?> updateCurrentUser(@RequestBody Map<String, Object> updates) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
