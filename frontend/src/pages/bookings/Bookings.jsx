@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import api from '../../services/api';
@@ -6,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import PageHeader from '../../components/shared/PageHeader';
 
 const Bookings = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,8 @@ const Bookings = () => {
       startTime: '',
       endTime: '',
       purpose: '',
-      attendees: 1
+      attendees: 1,
+      images: []
     },
     validationSchema: Yup.object({
       resourceId: Yup.string().required('Required'),
@@ -37,10 +40,35 @@ const Bookings = () => {
       setLoading(true);
       setError(null);
       try {
-        await api.post('/bookings', { ...values, userId: user.id });
+        const formData = new FormData();
+        const bookingData = {
+          resourceId: values.resourceId,
+          date: values.date,
+          startTime: values.startTime,
+          endTime: values.endTime,
+          purpose: values.purpose,
+          attendees: values.attendees,
+          userId: user.id
+        };
+        
+        formData.append('booking', new Blob([JSON.stringify(bookingData)], { type: "application/json" }));
+        
+        if (values.images && values.images.length > 0) {
+          values.images.forEach(img => {
+            formData.append('images', img);
+          });
+        }
+
+        await api.post('/bookings', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
         setSuccess(true);
         resetForm();
-        setTimeout(() => setSuccess(false), 3000);
+        setTimeout(() => {
+          setSuccess(false);
+          navigate('/my-bookings');
+        }, 1500);
       } catch (err) {
         console.error(err);
         setError(err.response?.data?.message || 'Failed to submit booking request. Please try again.');
@@ -157,6 +185,26 @@ const Bookings = () => {
               className={`w-full p-4 border-2 rounded-xl bg-slate-50 dark:bg-slate-800 transition-all outline-none text-sm font-bold text-[#142B5D] dark:text-white ${formik.touched.purpose && formik.errors.purpose ? 'border-rose-300' : 'border-slate-100 dark:border-slate-800 focus:border-[#142B5D] dark:focus:border-[#F5AB24]'}`}
             ></textarea>
             {formik.touched.purpose && formik.errors.purpose ? <div className="text-[10px] font-black text-rose-500 uppercase px-2 italic">{formik.errors.purpose}</div> : null}
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-black text-[#142B5D] dark:text-slate-400 uppercase tracking-widest px-1">Evidence Images (Upload up to 3)</label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => {
+                const files = Array.from(e.target.files).slice(0, 3);
+                formik.setFieldValue('images', files);
+              }}
+              className="w-full p-4 border-2 border-dashed rounded-xl bg-slate-50 dark:bg-slate-800 transition-all outline-none text-sm font-bold text-[#142B5D] dark:text-white border-slate-200 dark:border-slate-700 hover:border-[#142B5D] dark:hover:border-[#F5AB24]"
+            />
+            {formik.values.images && formik.values.images.length > 0 && (
+              <p className="text-[10px] font-black text-emerald-500 uppercase px-2 mt-2">
+                {formik.values.images.length} {formik.values.images.length === 1 ? 'file' : 'files'} selected for upload
+              </p>
+            )}
+            {formik.touched.images && formik.errors.images ? <div className="text-[10px] font-black text-rose-500 uppercase px-2 italic">{formik.errors.images}</div> : null}
           </div>
 
           <button
