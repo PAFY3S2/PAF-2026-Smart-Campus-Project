@@ -3,6 +3,7 @@ import { Search, Filter } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTickets, useUpdateTicketStatus } from '../../hooks/useTickets';
 import TicketTable from '../../components/technician/TicketTable';
+import abcImage from '../../assets/abc.jpg';
 
 const TechnicianTicketListView = ({ title, subtitle, pageType = 'active' }) => {
   const { user } = useAuth();
@@ -49,16 +50,24 @@ const TechnicianTicketListView = ({ title, subtitle, pageType = 'active' }) => {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-        {isLoading ? (
-          <div className="p-20 text-center font-black text-slate-300 uppercase tracking-widest animate-pulse">Syncing Operation Logs...</div>
-        ) : (
-          <TicketTable 
-            tickets={filteredTickets} 
-            onUpdateStatus={handleUpdateStatus} 
-            pageType={pageType}
-          />
+      <div 
+        className={`rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden ${pageType === 'in-progress' ? 'bg-cover bg-center relative' : 'bg-white dark:bg-slate-900'}`}
+        style={pageType === 'in-progress' ? { backgroundImage: `url(${abcImage})` } : {}}
+      >
+        {pageType === 'in-progress' && (
+          <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/60 backdrop-blur-md z-0 pointer-events-none"></div>
         )}
+        <div className="relative z-10">
+          {isLoading ? (
+            <div className="p-20 text-center font-black text-slate-300 uppercase tracking-widest animate-pulse">Syncing Operation Logs...</div>
+          ) : (
+            <TicketTable 
+              tickets={filteredTickets} 
+              onUpdateStatus={handleUpdateStatus} 
+              pageType={pageType}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
