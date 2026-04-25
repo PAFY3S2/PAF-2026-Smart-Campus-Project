@@ -14,6 +14,8 @@ const Resources = () => {
   const location = useLocation();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState(null);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [resourceToPreview, setResourceToPreview] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [resources, setResources] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,6 +59,11 @@ const Resources = () => {
   const confirmDelete = (resource) => {
     setResourceToDelete(resource);
     setDeleteModalOpen(true);
+  };
+
+  const handlePreview = (resource) => {
+    setResourceToPreview(resource);
+    setPreviewModalOpen(true);
   };
 
   const handleDelete = async () => {
@@ -246,6 +253,7 @@ const Resources = () => {
             onDelete={() => confirmDelete(resource)}
             onEdit={() => navigate(`/admin/resources/edit/${resource.id}`)}
             onView={() => navigate(`/resources/${resource.id}`)}
+            onPreview={() => handlePreview(resource)}
           />
         ))}
       </div>
@@ -289,6 +297,15 @@ const Resources = () => {
           onConfirm={handleDelete}
         />
       )}
+
+      {/* Preview Modal */}
+      {previewModalOpen && resourceToPreview && (
+        <PreviewModal 
+          resource={resourceToPreview}
+          onClose={() => setPreviewModalOpen(false)}
+          onViewDetails={() => navigate(`/resources/${resourceToPreview.id}`)}
+        />
+      )}
     </div>
   );
 };
@@ -324,9 +341,9 @@ const FilterSelect = ({ label, value, onChange, children }) => (
   </div>
 );
 
-const ResourceCard = ({ resource, isAdmin, onToggleStatus, onDelete, onEdit, onView }) => (
+const ResourceCard = ({ resource, isAdmin, onToggleStatus, onDelete, onEdit, onView, onPreview }) => (
   <div 
-    onClick={onView}
+    onClick={onPreview}
     className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:border-[#F5AB24]/30 hover:-translate-y-2 cursor-pointer transition-all duration-500 relative z-0"
   >
     <div className="w-full h-56 overflow-hidden relative bg-slate-100 dark:bg-slate-800">
@@ -439,6 +456,83 @@ const DeleteModal = ({ resourceName, isDeleting, onCancel, onConfirm }) => (
             disabled={isDeleting}
           >
             {isDeleting ? 'Purging...' : 'Confirm Purge'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const PreviewModal = ({ resource, onClose, onViewDetails }) => (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#142B5D]/40 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={onClose}>
+    <div 
+      className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl max-w-lg w-full border border-slate-100 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col"
+      onClick={e => e.stopPropagation()}
+    >
+      <div className="w-full h-48 relative bg-slate-100 dark:bg-slate-800">
+        {resource.imageUrl ? (
+          <img 
+            src={resolveImage(resource.imageUrl)}
+            className="w-full h-full object-cover" 
+            alt={resource.name}
+            onError={(e) => { e.target.src = "https://placehold.co/600x400/142B5D/white?text=Campus+Facility"; }}
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-slate-400 h-full w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
+            <ImageIcon className="w-12 h-12 mb-3 opacity-20" />
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Static Asset</span>
+          </div>
+        )}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 bg-black/20 hover:bg-black/40 backdrop-blur-md text-white rounded-full transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+        <div className="absolute bottom-4 left-4">
+          <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg backdrop-blur-md ${resource.status === 'ACTIVE' ? 'bg-emerald-500/90 text-white' : 'bg-rose-500/90 text-white'}`}>
+            {resource.status === 'ACTIVE' ? 'Available' : 'Unavailable'}
+          </span>
+        </div>
+      </div>
+      
+      <div className="p-8 space-y-6">
+        <div>
+          <div className="flex items-center space-x-3 mb-3">
+            <div className={`p-2 rounded-lg ${resource.type === 'EQUIPMENT' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'}`}>
+              {resource.type === 'EQUIPMENT' ? <Monitor className="w-4 h-4" /> : <Building className="w-4 h-4" />}
+            </div>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{resource.type}</span>
+          </div>
+          <h3 className="text-2xl font-black text-[#142B5D] dark:text-white tracking-tighter mb-1">{resource.name}</h3>
+          <p className="text-sm font-bold text-slate-400">{resource.location}</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 border-t border-slate-50 dark:border-slate-800 pt-6 mb-2">
+          {resource.capacity && (
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Capacity</span>
+              <span className="text-sm font-black text-[#142B5D] dark:text-white">{resource.capacity} PAX</span>
+            </div>
+          )}
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Active Hours</span>
+            <span className="text-sm font-black text-[#142B5D] dark:text-white">{resource.availabilityStartTime || '08:00'} - {resource.availabilityEndTime || '18:00'}</span>
+          </div>
+        </div>
+
+        <div className="flex gap-4 pt-2">
+          <button 
+            onClick={onClose}
+            className="flex-1 py-4 bg-slate-50 dark:bg-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-100 transition"
+          >
+            Close
+          </button>
+          <button 
+            onClick={() => { onClose(); onViewDetails(); }}
+            className="flex-1 py-4 bg-[#142B5D] hover:bg-[#0D1E40] text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-[#142B5D]/20 transition"
+          >
+            View Full Details
           </button>
         </div>
       </div>
