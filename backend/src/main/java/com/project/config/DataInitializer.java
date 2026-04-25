@@ -28,11 +28,6 @@ public class DataInitializer implements CommandLineRunner {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public void addResourceHandlers(@org.springframework.lang.NonNull ResourceHandlerRegistry registry) {
-        // exposeDirectory(uploadDir, registry);
-    }
-
-    @Override
     public void run(String... args) throws Exception {
         String adminEmail = "pasan@test.com";
         
