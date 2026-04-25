@@ -32,7 +32,7 @@ const UserDetail = () => {
     const fetchData = async () => {
       try {
         const [userRes, bookingsRes] = await Promise.all([
-          api.get(`/auth/users/${id}`),
+          api.get(`/admin/users/${id}`),
           api.get(`/bookings/user/${id}`)
         ]);
         setUserData(userRes.data);
@@ -83,9 +83,13 @@ const UserDetail = () => {
             </div>
 
             <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">{userData.name}</h2>
-            <div className="inline-flex px-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-black text-slate-500 tracking-widest uppercase mb-8">
-               Node Status: Active
+            <div className={`inline-flex px-3 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[10px] font-black tracking-widest uppercase mb-8 ${userData.enabled ? 'text-emerald-500' : 'text-rose-500'}`}>
+               Node Status: {userData.enabled ? 'Active' : 'Disabled'}
             </div>
+
+            {userData.bio && (
+              <p className="text-[11px] text-slate-500 font-medium italic mb-8 max-w-xs">"{userData.bio}"</p>
+            )}
 
             <div className="w-full space-y-4 pt-8 border-t border-slate-900">
                <div className="flex justify-between items-center text-[10px] font-black tracking-widest uppercase">
@@ -97,8 +101,8 @@ const UserDetail = () => {
                   <span className="text-slate-400">{new Date(userData.createdAt).toLocaleDateString()}</span>
                </div>
                <div className="flex justify-between items-center text-[10px] font-black tracking-widest uppercase">
-                  <span className="text-slate-600">Secure Mail</span>
-                  <span className="text-slate-400">{userData.email.split('@')[0]}...</span>
+                  <span className="text-slate-600">System ID</span>
+                  <span className="text-slate-400">#{userData.id.slice(-8).toUpperCase()}</span>
                </div>
             </div>
           </motion.div>
@@ -112,8 +116,11 @@ const UserDetail = () => {
                  { label: 'Academic ID', val: userData.studentId, icon: Hash },
                  { label: 'Faculty Path', val: userData.faculty, icon: Building2 },
                  { label: 'Operational Batch', val: userData.batch, icon: Users },
-                 { label: 'Contact Node', val: userData.contactNumber, icon: Phone }
-               ].map((meta, i) => (
+                 { label: 'Contact Node', val: userData.phoneNumber || userData.contactNumber, icon: Phone },
+                 { label: 'Specialty', val: userData.specialty, icon: Shield },
+                 { label: 'Physical Address', val: userData.address, icon: MapPin },
+                 { label: 'Availability', val: userData.role === 'TECHNICIAN' ? (userData.availability ? 'ONLINE' : 'OFFLINE') : null, icon: Clock }
+               ].filter(m => m.val !== null).map((meta, i) => (
                  <div key={i} className="flex items-center space-x-4">
                    <div className="w-10 h-10 bg-slate-950 rounded-xl flex items-center justify-center text-slate-700 border border-slate-800">
                       <meta.icon className="w-4 h-4" />

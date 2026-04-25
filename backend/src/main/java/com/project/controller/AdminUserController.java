@@ -33,6 +33,13 @@ public class AdminUserController {
         return ResponseEntity.ok(technicians);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+        return userService.getUserById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PatchMapping("/{id}/role")
     public ResponseEntity<?> updateUserRole(@PathVariable String id, @Valid @RequestBody RoleUpdateRequest request) {
         Optional<User> userOptional = userService.getUserById(id);
