@@ -59,9 +59,7 @@ const Bookings = () => {
           });
         }
 
-        await api.post('/bookings', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+        await api.post('/bookings', formData);
 
         setSuccess(true);
         resetForm();

@@ -39,15 +39,12 @@ public class BookingController {
 
     @PostMapping(consumes = {"multipart/form-data"})
     public ResponseEntity<?> createBooking(
-            @RequestPart(value = "booking") String bookingStr,
+            @RequestPart(value = "booking") Booking booking,
             @RequestPart(value = "images", required = false) org.springframework.web.multipart.MultipartFile[] images) {
         try {
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            Booking booking = mapper.readValue(bookingStr, Booking.class);
-
             java.util.List<String> imagePaths = new java.util.ArrayList<>();
             if (images != null && images.length > 0) {
-                String uploadDirStr = "D:/MyGit/PAF main/backend/uploads/";
+                String uploadDirStr = "uploads/";
                 java.io.File uploadDir = new java.io.File(uploadDirStr);
                 if (!uploadDir.exists()) uploadDir.mkdirs();
                 
@@ -63,6 +60,7 @@ public class BookingController {
             
             return ResponseEntity.ok(bookingService.createBooking(booking));
         } catch (java.lang.RuntimeException | java.io.IOException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
