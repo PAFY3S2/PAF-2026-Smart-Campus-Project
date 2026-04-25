@@ -11,6 +11,8 @@ const ResourceDetails = () => {
   const [resource, setResource] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const fetchResource = async () => {
     setIsLoading(true);
@@ -135,12 +137,14 @@ const ResourceDetails = () => {
       <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden">
         {/* Header section with Image */}
         <div className="w-full h-80 md:h-[400px] relative overflow-hidden bg-slate-900">
-          {resource.imageUrl ? (
+          {resource.imageUrl && !imgError ? (
             <img 
               src={resolveImage(resource.imageUrl)}
-              className="w-full h-full object-cover opacity-60"
+              loading="lazy"
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+              className={`w-full h-full object-cover transition-opacity duration-1000 ${imgLoaded ? 'opacity-60' : 'opacity-0'}`}
               alt={resource.name}
-              onError={(e) => { e.target.src = "https://placehold.co/1200x800/142B5D/white?text=Institutional+Asset"; }}
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#142B5D] to-[#0D1E40] flex flex-col items-center justify-center">

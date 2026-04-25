@@ -341,18 +341,24 @@ const FilterSelect = ({ label, value, onChange, children }) => (
   </div>
 );
 
-const ResourceCard = ({ resource, isAdmin, onToggleStatus, onDelete, onEdit, onView, onPreview }) => (
+const ResourceCard = ({ resource, isAdmin, onToggleStatus, onDelete, onEdit, onView, onPreview }) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  return (
   <div 
     onClick={onPreview}
     className="group flex flex-col bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:border-[#F5AB24]/30 hover:-translate-y-2 cursor-pointer transition-all duration-500 relative z-0"
   >
     <div className="w-full h-56 overflow-hidden relative bg-slate-100 dark:bg-slate-800">
-      {resource.imageUrl ? (
+      {resource.imageUrl && !imgError ? (
         <img 
           src={resolveImage(resource.imageUrl)}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+          loading="lazy"
+          onLoad={() => setImgLoaded(true)}
+          onError={() => setImgError(true)}
+          className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`} 
           alt={resource.name}
-          onError={(e) => { e.target.src = "https://placehold.co/600x400/142B5D/white?text=Campus+Facility"; }}
         />
       ) : (
         <div className="flex flex-col items-center justify-center text-slate-400 h-full w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
@@ -409,7 +415,8 @@ const ResourceCard = ({ resource, isAdmin, onToggleStatus, onDelete, onEdit, onV
       )}
     </div>
   </div>
-);
+  );
+};
 
 const CardAction = ({ icon, onClick, title, color }) => (
   <button 
@@ -463,19 +470,25 @@ const DeleteModal = ({ resourceName, isDeleting, onCancel, onConfirm }) => (
   </div>
 );
 
-const PreviewModal = ({ resource, onClose, onViewDetails }) => (
+const PreviewModal = ({ resource, onClose, onViewDetails }) => {
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  return (
   <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#142B5D]/40 backdrop-blur-md p-4 animate-in fade-in duration-300" onClick={onClose}>
     <div 
       className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl max-w-lg w-full border border-slate-100 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col"
       onClick={e => e.stopPropagation()}
     >
       <div className="w-full h-48 relative bg-slate-100 dark:bg-slate-800">
-        {resource.imageUrl ? (
+        {resource.imageUrl && !imgError ? (
           <img 
             src={resolveImage(resource.imageUrl)}
-            className="w-full h-full object-cover" 
+            loading="lazy"
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+            className={`w-full h-full object-cover transition-opacity duration-700 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`} 
             alt={resource.name}
-            onError={(e) => { e.target.src = "https://placehold.co/600x400/142B5D/white?text=Campus+Facility"; }}
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-slate-400 h-full w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
@@ -538,6 +551,7 @@ const PreviewModal = ({ resource, onClose, onViewDetails }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default Resources;
