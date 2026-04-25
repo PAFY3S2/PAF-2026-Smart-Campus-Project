@@ -27,10 +27,21 @@ const Sidebar = ({ isOpen, setOpen }) => {
   ];
 
   return (
-    <aside className={clsx(
+    <>
+{/* Overlay */}
+    {isOpen && (
+      <div
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+      />
+    )}
+
+     <aside
+    className={clsx(
       "fixed inset-y-0 left-0 bg-[#142B5D] text-white border-r border-white/10 w-64 transform transition-transform duration-300 z-50 lg:translate-x-0 lg:static flex flex-col shadow-2xl",
       isOpen ? "translate-x-0" : "-translate-x-full"
-    )}>
+    )}
+  >
       {/* Brand Header - FIXED REPLICATION */}
       <div className="h-20 flex items-center px-6 bg-[#0D1E40] border-b border-white/10 relative">
         <div className="bg-white p-1.5 rounded-lg shadow-sm mr-3">
@@ -43,7 +54,7 @@ const Sidebar = ({ isOpen, setOpen }) => {
 
         {/* Mobile Close Button */}
         <button 
-          onClick={() => setOpen(false)}
+          onClick={() => setOpen(false)}  aria-label="Close Sidebar"
           className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
         >
           <X className="w-6 h-6" />
@@ -88,6 +99,8 @@ const Sidebar = ({ isOpen, setOpen }) => {
         </button>
       </div>
     </aside>
+
+    </>
   );
 };
 
