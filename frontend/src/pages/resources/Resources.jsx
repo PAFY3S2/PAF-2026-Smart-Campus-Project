@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, Monitor, Building, Plus, Pencil, Trash2, X, AlertCircle, Loader2, Power, Database, Activity, XCircle, CalendarPlus, Image as ImageIcon, RefreshCcw } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -86,17 +86,25 @@ const Resources = () => {
     }
   };
 
-  const uniqueLocations = ['ALL', ...new Set(resources.map(r => r.location).filter(Boolean))];
+  const uniqueLocations = useMemo(() => {
+    return ['ALL', ...new Set(resources.map(r => r.location).filter(Boolean))];
+  }, [resources]);
 
-  const filteredResources = resources.filter(res => {
-    const matchesSearch = (res.name || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase());
-    const matchesType = filterType === 'ALL' || res.type === filterType;
-    const matchesStatus = filterStatus === 'ALL' || res.status === filterStatus;
-    const matchesLocation = filterLocation === 'ALL' || res.location === filterLocation;
-    const matchesCapacity = !minCapacity || (res.type !== 'EQUIPMENT' && res.capacity && res.capacity >= Number(minCapacity));
-    
-    return matchesSearch && matchesType && matchesStatus && matchesLocation && matchesCapacity;
-  });
+  const filteredResources = useMemo(() => {
+    return resources.filter(res => {
+      const matchesSearch = (res.name || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+      const matchesType = filterType === 'ALL' || res.type === filterType;
+      const matchesStatus = filterStatus === 'ALL' || res.status === filterStatus;
+      const matchesLocation = filterLocation === 'ALL' || res.location === filterLocation;
+      const matchesCapacity = !minCapacity || (res.type !== 'EQUIPMENT' && res.capacity && res.capacity >= Number(minCapacity));
+      
+      return matchesSearch && matchesType && matchesStatus && matchesLocation && matchesCapacity;
+    });
+  }, [resources, debouncedSearchTerm, filterType, filterStatus, filterLocation, minCapacity]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, filterType, filterStatus, filterLocation, minCapacity]);
 
   const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
   const currentResources = filteredResources.slice(
