@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
+import Card, { CardBody } from '../../components/common/Card';
 
 const Bookings = () => {
   const { user } = useAuth();
@@ -51,7 +52,8 @@ const Bookings = () => {
     <div className="max-w-3xl mx-auto space-y-6">
       <h1 className="text-2xl font-bold text-slate-900">Create a Booking Request</h1>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+      <Card>
+      <CardBody>
         {success && (
           <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg flex items-center">
             Booking request submitted successfully! It is now pending approval.
@@ -157,7 +159,8 @@ const Bookings = () => {
             {loading ? 'Submitting...' : 'Submit Booking Request'}
           </Button>
         </form>
-      </div>
+      </CardBody>
+      </Card>
     </div>
   );
 };

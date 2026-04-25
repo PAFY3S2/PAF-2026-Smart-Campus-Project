@@ -7,6 +7,7 @@ import Toast from '../../components/common/Toast';
 import { resolveImage } from '../../utils/imageUtils';
 import Loader from '../../components/common/Loader';
 import EmptyState from '../../components/common/EmptyState';
+import Card from '../../components/common/Card';
 
 const Resources = () => {
   const { user } = useAuth();
@@ -308,10 +309,11 @@ const Resources = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
         {currentResources.map(resource => {
           return (
-          <div 
+          <Card 
             key={resource.id} 
             onClick={() => navigate(`/resources/${resource.id}`)}
-            className="group flex flex-col bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:border-primary/50 hover:-translate-y-1 cursor-pointer transition-all duration-300 relative z-0"
+            hoverable
+            className="group flex flex-col overflow-hidden relative z-0"
           >
             {/* Image Container */}
             <div className="w-full h-48 overflow-hidden rounded-t-2xl border-b border-slate-100 dark:border-slate-800 relative bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
@@ -411,7 +413,7 @@ const Resources = () => {
                 </div>
               )}
             </div>
-          </div>
+          </Card>
           );
         })}
         

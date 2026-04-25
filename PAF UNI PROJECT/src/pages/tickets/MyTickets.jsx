@@ -3,6 +3,7 @@ import api from '../../services/api';
 import { MessageSquare, Inbox } from 'lucide-react';
 import Loader from '../../components/common/Loader';
 import EmptyState from '../../components/common/EmptyState';
+import Card, { CardBody } from '../../components/common/Card';
 
 const MyTickets = () => {
   const [tickets, setTickets] = useState([]);
@@ -49,32 +50,34 @@ const MyTickets = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {tickets.map(ticket => (
-            <div key={ticket.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
-              <div className="flex justify-between items-start mb-4">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  TKT-{ticket.id}
-                </span>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(ticket.status)}`}>
-                  {ticket.status.replace('_', ' ')}
-                </span>
-              </div>
-              
-              <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-800 line-clamp-1">{ticket.category} Issue</h3>
-                <p className="text-slate-500 text-sm mt-1 line-clamp-2">{ticket.description}</p>
-              </div>
-
-              <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-100">
-                <span className={`text-xs font-medium px-2 py-1 rounded border ${getPriorityColor(ticket.priority)}`}>
-                  {ticket.priority} PRIORITY
-                </span>
-                
-                <div className="flex items-center text-slate-400 text-sm">
-                  <MessageSquare className="w-4 h-4 mr-1" />
-                  {ticket.comments?.length || 0}
+            <Card key={ticket.id} hoverable className="flex flex-col h-full">
+              <CardBody className="flex flex-col h-full">
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    TKT-{ticket.id}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusBadge(ticket.status)}`}>
+                    {ticket.status.replace('_', ' ')}
+                  </span>
                 </div>
-              </div>
-            </div>
+                
+                <div className="mb-4">
+                  <h3 className="text-lg font-bold text-slate-800 line-clamp-1">{ticket.category} Issue</h3>
+                  <p className="text-slate-500 text-sm mt-1 line-clamp-2">{ticket.description}</p>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-100">
+                  <span className={`text-xs font-medium px-2 py-1 rounded border ${getPriorityColor(ticket.priority)}`}>
+                    {ticket.priority} PRIORITY
+                  </span>
+                  
+                  <div className="flex items-center text-slate-400 text-sm">
+                    <MessageSquare className="w-4 h-4 mr-1" />
+                    {ticket.comments?.length || 0}
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
           ))}
         </div>
       )}
