@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowRight, ShieldCheck, Lock } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Lock, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/SLIIT FacilityFlow logo design.png';
 import adminBtnImg from '../../assets/ADMIN LOOK (1).jpg';
@@ -13,6 +13,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
@@ -96,7 +97,7 @@ const Login = () => {
           backgroundPosition: 'center'
         }}>
           <div className="relative z-10">
-            <img src={logo} alt="SLIIT Logo" className="h-16 w-auto brightness-0 invert mb-8" />
+            <img src={logo} alt="SLIIT Logo" className="h-16 w-auto mb-8 object-contain" />
             <h2 className="text-4xl font-black leading-tight mb-6">
               {step === 1 ? 'Welcome to the' : 'Identity'} <br/>
               <span className="text-[#F5AB24]">{step === 1 ? 'Institutional Portal' : 'Verification'}</span>
@@ -217,27 +218,38 @@ const Login = () => {
 
                 <div>
                   <label className="block text-[10px] font-black text-[#142B5D] uppercase tracking-widest mb-1.5 px-1">Password</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#142B5D] rounded-lg px-4 py-3 outline-none transition text-sm font-bold text-[#142B5D] placeholder-slate-400"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#142B5D] rounded-lg pl-4 pr-12 py-3 outline-none transition text-sm font-bold text-[#142B5D] placeholder-slate-400"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-[#142B5D] transition-colors focus:outline-none"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
 
                 {!isLogin && (
                   <div>
                     <label className="block text-[10px] font-black text-[#142B5D] uppercase tracking-widest mb-1.5 px-1">Confirm Password</label>
-                    <input
-                      type="password"
-                      required
-                      placeholder="••••••••••••"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#142B5D] rounded-lg px-4 py-3 outline-none transition text-sm font-bold text-[#142B5D] placeholder-slate-400"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder="••••••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full bg-slate-50 border-2 border-slate-100 focus:border-[#142B5D] rounded-lg pl-4 pr-12 py-3 outline-none transition text-sm font-bold text-[#142B5D] placeholder-slate-400"
+                      />
+                    </div>
                   </div>
                 )}
 
