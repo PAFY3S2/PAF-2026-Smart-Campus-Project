@@ -16,8 +16,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import com.project.service.FileStorageService;
 
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
@@ -42,9 +40,6 @@ public class AuthController {
 
     @Autowired
     private com.project.service.EmailService emailService;
-
-    @Autowired
-    private FileStorageService fileStorageService;
 
     private String generateOtp() {
         return String.valueOf((int) ((Math.random() * (999999 - 100000)) + 100000));
@@ -230,28 +225,5 @@ public class AuthController {
         userRepository.save(user);
         
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
-    }
-
-    @PostMapping("/upload-avatar")
-    public ResponseEntity<?> uploadAvatar(@RequestParam("avatar") MultipartFile file) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return ResponseEntity.status(401).body(Map.of("message", "Not authenticated"));
-        }
-        
-        com.project.security.UserPrincipal userPrincipal = (com.project.security.UserPrincipal) authentication.getPrincipal();
-        User user = userRepository.findById(userPrincipal.getId()).orElse(null);
-        if (user == null) return ResponseEntity.notFound().build();
-        
-        try {
-            String fileName = fileStorageService.storeFile(file);
-            // Construct the URL to access the uploaded file
-            String fileUrl = "http://localhost:8081/uploads/" + fileName;
-            user.setAvatar(fileUrl);
-            User savedUser = userRepository.save(user);
-            return ResponseEntity.ok(savedUser);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Failed to upload avatar: " + e.getMessage()));
-        }
     }
 }

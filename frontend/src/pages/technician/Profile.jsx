@@ -148,14 +148,14 @@ const TechnicianProfile = () => {
     try {
       const fd = new FormData();
       fd.append('avatar', file);
-      const res = await api.post('/auth/upload-avatar', fd, {
+      const res = await api.post('/technician/profile-picture', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(progress);
         },
       });
-      setUser(res.data);
+      setUser(prev => ({ ...prev, avatar: res.data.avatarUrl }));
       toast.success('Profile picture updated successfully');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Upload failed');
