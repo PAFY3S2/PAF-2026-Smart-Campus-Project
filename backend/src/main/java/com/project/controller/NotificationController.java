@@ -38,6 +38,12 @@ public class NotificationController {
         return ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/read-all")
+    public ResponseEntity<?> markAllAsRead(@AuthenticationPrincipal UserPrincipal userPrincipal) {
+        notificationService.markAllAsRead(userPrincipal.getId());
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNotification(@PathVariable String id, @AuthenticationPrincipal UserPrincipal userPrincipal) {
         boolean deleted = notificationService.deleteNotification(id, userPrincipal.getId());

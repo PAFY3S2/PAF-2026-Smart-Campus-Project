@@ -24,6 +24,14 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
     setShowNotifications(false);
   };
 
+  const handleToggleNotifications = () => {
+    const opening = !showNotifications;
+    setShowNotifications(opening);
+    if (opening && unreadCount > 0) {
+      markAllAsRead.mutate();
+    }
+  };
+
   return (
     <header className="h-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-40 transition-colors duration-300">
       <div className="flex items-center space-x-4 flex-1">
@@ -63,7 +71,7 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
           </button>
 
           <button 
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={handleToggleNotifications}
             className={clsx(
               "relative p-2.5 rounded-full transition-all",
               showNotifications ? "bg-[#142B5D] text-white" : "text-slate-400 hover:text-[#142B5D] dark:hover:text-[#F5AB24] hover:bg-slate-100 dark:hover:bg-slate-800"

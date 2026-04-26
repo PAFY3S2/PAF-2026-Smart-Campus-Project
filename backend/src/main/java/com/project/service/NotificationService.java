@@ -78,6 +78,14 @@ public class NotificationService {
         return Optional.empty();
     }
 
+    public void markAllAsRead(String userId) {
+        List<Notification> unread = notificationRepository.findByUserIdAndIsReadFalseOrderByCreatedAtDesc(userId);
+        for (Notification notification : unread) {
+            notification.setRead(true);
+        }
+        notificationRepository.saveAll(unread);
+    }
+
     public boolean deleteNotification(String id, String userId) {
         Optional<Notification> optionalNotification = notificationRepository.findById(id);
         

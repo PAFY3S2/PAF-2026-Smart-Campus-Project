@@ -5,6 +5,7 @@ import api from '../services/api';
 const NotificationBell = ({ liveNotifications }) => {
   const [notifications, setNotifications] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [showDot, setShowDot] = useState(false);
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -22,17 +23,13 @@ const NotificationBell = ({ liveNotifications }) => {
 
   useEffect(() => {
     if (liveNotifications && liveNotifications.length > 0) {
-      // Append newly received live notifications (filter out duplicates based on ID if needed)
-      // Since useWebSocket prepends to liveNotifications, we just merge carefully or re-fetch.
-      // To keep it simple, we just merge all live notifications and current state and remove duplicates
       setNotifications(prev => {
          const combined = [...liveNotifications, ...prev];
          const unique = Array.from(new Set(combined.map(a => a.id)))
-           .map(id => {
-             return combined.find(a => a.id === id)
-           });
-         return unique.filter(n => !n.read); // Only keep unread
+           .map(id => combined.find(a => a.id === id));
+         return unique.filter(n => !n.read);
       });
+      setShowDot(true);
     }
   }, [liveNotifications]);
   
@@ -46,6 +43,21 @@ const NotificationBell = ({ liveNotifications }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (notifications.length > 0 && !isOpen) {
+      setShowDot(true);
+    }
+  }, [notifications]);
+
+  const handleToggleOpen = () => {
+    const opening = !isOpen;
+    setIsOpen(opening);
+    if (opening && showDot) {
+      setShowDot(false);
+      api.patch('/notifications/read-all').catch(console.error);
+    }
+  };
 
   const markAsRead = async (id) => {
     try {
@@ -81,11 +93,11 @@ const NotificationBell = ({ liveNotifications }) => {
   return (
     <div className="relative" ref={panelRef}>
       <button 
-        onClick={() => setIsOpen(!isOpen)} 
+        onClick={handleToggleOpen} 
         className="relative p-2 text-gray-500 hover:text-gray-700 transition-colors focus:outline-none"
       >
         <Bell size={24} />
-        {notifications.length > 0 && (
+        {showDot && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full shadow-sm animate-pulse">
             {notifications.length}
           </span>
@@ -96,9 +108,11 @@ const NotificationBell = ({ liveNotifications }) => {
         <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white bg-opacity-95 backdrop-blur-md border border-gray-100 rounded-xl shadow-2xl z-50 overflow-hidden transform origin-top-right transition-all">
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
-            <span className="text-xs bg-gray-200 text-gray-600 py-1 px-2 rounded-full font-medium">
-              {notifications.length} Unread
-            </span>
+            {showDot && (
+              <span className="text-xs bg-gray-200 text-gray-600 py-1 px-2 rounded-full font-medium">
+                {notifications.length} Unread
+              </span>
+            )}
           </div>
           
           <div className="max-h-96 overflow-y-auto w-full">

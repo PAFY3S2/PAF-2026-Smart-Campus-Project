@@ -169,7 +169,7 @@ const TechnicianProfile = () => {
   // ─── Update Password ───────────────────────────────────────────────
   const onPwSubmit = async (data) => {
     try {
-      await api.put('/technician/password', {
+      await api.post('/auth/update-password', {
         currentPassword: data.currentPassword,
         newPassword:     data.newPassword,
       });

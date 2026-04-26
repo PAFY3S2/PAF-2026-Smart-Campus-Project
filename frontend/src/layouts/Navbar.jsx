@@ -20,8 +20,17 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const markAsRead = async (id) => {
-    await api.put(`/notifications/${id}/read`);
+    await api.patch(`/notifications/${id}/read`);
     setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const handleToggleNotifications = () => {
+    const opening = !showNotifications;
+    setShowNotifications(opening);
+    if (opening && unreadCount > 0) {
+      api.patch('/notifications/read-all').catch(console.error);
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    }
   };
 
   return (
@@ -60,7 +69,7 @@ const Navbar = ({ toggleSidebar, sidebarOpen }) => {
         <div className="relative">
           <button 
             className="p-2 rounded-full text-slate-400 hover:text-[#142B5D] hover:bg-slate-100 transition relative"
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={handleToggleNotifications}
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
